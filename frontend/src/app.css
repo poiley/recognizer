@@ -1,0 +1,25 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+:root {
+  --bg: #000000;
+  --text: #ffffff;
+  --accent: #3b82f6;
+  --secondary: #1f2937;
+}
+
+.markdown-body {
+  background-color: var(--secondary) !important;
+  color: var(--text) !important;
+}
+
+.file-drop-zone {
+  border: 2px dashed var(--accent);
+  transition: all 0.2s;
+}
+
+.file-drop-zone:hover {
+  border-color: var(--text);
+}

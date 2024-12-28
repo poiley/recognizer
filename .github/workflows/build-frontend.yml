@@ -1,0 +1,33 @@
+name: Frontend Build
+on:
+  push:
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/frontend.yml'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Get version
+      id: version
+      run: |
+        VERSION=$(cat frontend/version)
+        echo "VERSION=${VERSION}-$(date +'%Y%m%d')-$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+    
+    - name: Build Frontend
+      run: |
+        cd frontend
+        docker build -t frontend:${{ steps.version.outputs.VERSION }} .
+        docker save frontend:${{ steps.version.outputs.VERSION }} | gzip > frontend.tar.gz
+        echo ${{ steps.version.outputs.VERSION }} > version.txt
+        
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: frontend-image-${{ steps.version.outputs.VERSION }}
+        path: |
+          frontend.tar.gz
+          version.txt
