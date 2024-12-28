@@ -90,42 +90,57 @@ def check_memory():
    return True
 
 
+async def send_status_updates(websocket: WebSocket):
+    """Send periodic status updates to keep connection alive"""
+    try:
+        while True:
+            await websocket.send_json({"status": "processing", "message": "Processing with Ollama..."})
+            await asyncio.sleep(5)  # Update every 5 seconds
+    except asyncio.CancelledError:
+        pass
+
+
 @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=4, max=10))
 @lru_cache(maxsize=10)
-async def process_chunk(text: str) -> str:
-   if not check_memory():
-       print("[Chunk] Memory limit exceeded")
-       raise MemoryError("Memory limit exceeded")
-   try:
-       print("[Chunk] Starting Ollama request")
-       print(f"[Chunk] Request length: {len(text)} characters")
+async def process_chunk(text: str, websocket: WebSocket) -> str:
+    if not check_memory():
+        print("[Chunk] Memory limit exceeded")
+        raise MemoryError("Memory limit exceeded")
+    try:
+        print("[Chunk] Starting Ollama request")
+        print(f"[Chunk] Request length: {len(text)} characters")
 
-       async with asyncio.timeout(OLLAMA_TIMEOUT):
-           try:
-               print("[Chunk] Making API call to Ollama")
-               response = await ollama.chat(
-                   model='mistral',
-                   messages=[{'role': 'user', 'content': f'Analyze and summarize: {text}'}]
-               )
-               print("[Chunk] Ollama request complete")
-               print(f"[Chunk] Response length: {len(response['message']['content'])} characters")
-               return response['message']['content']
-           except ollama.ResponseError as e:
-               print(f"[Chunk] Ollama API error: {str(e)}")
-               print(f"[Chunk] Response status: {getattr(e, 'status', 'unknown')}")
-               raise
-           except Exception as e:
-               print(f"[Chunk] Unexpected Ollama error: {str(e)}")
-               print(f"[Chunk] Error type: {type(e)}")
-               raise
-   except asyncio.TimeoutError:
-       print(f"[Chunk] Request timed out after {OLLAMA_TIMEOUT} seconds")
-       raise
-   except Exception as e:
-       print(f"[Chunk] Error in process_chunk: {str(e)}")
-       print(f"[Chunk] Error type: {type(e)}")
-       raise
+        # Start status updates
+        status_task = asyncio.create_task(send_status_updates(websocket))
 
+        async with asyncio.timeout(OLLAMA_TIMEOUT):
+            try:
+                print("[Chunk] Making API call to Ollama")
+                response = await ollama.chat(
+                    model='mistral',
+                    messages=[{'role': 'user', 'content': f'Analyze and summarize: {text}'}]
+                )
+                print("[Chunk] Ollama request complete")
+                print(f"[Chunk] Response length: {len(response['message']['content'])} characters")
+                status_task.cancel()  # Stop status updates
+                return response['message']['content']
+            except ollama.ResponseError as e:
+                print(f"[Chunk] Ollama API error: {str(e)}")
+                print(f"[Chunk] Response status: {getattr(e, 'status', 'unknown')}")
+                status_task.cancel()
+                raise
+            except Exception as e:
+                print(f"[Chunk] Unexpected Ollama error: {str(e)}")
+                print(f"[Chunk] Error type: {type(e)}")
+                status_task.cancel()
+                raise
+    except asyncio.TimeoutError:
+        print(f"[Chunk] Request timed out after {OLLAMA_TIMEOUT} seconds")
+        raise
+    except Exception as e:
+        print(f"[Chunk] Error in process_chunk: {str(e)}")
+        print(f"[Chunk] Error type: {type(e)}")
+        raise
 
 async def send_heartbeat(websocket: WebSocket):
     while True:
@@ -189,7 +204,7 @@ async def process_pdf(pdf_path: str, websocket: WebSocket) -> str:
             print("[PDF] Starting Ollama analysis")
             try:
                 print(f"[PDF] Text length: {len(full_text)} characters")
-                summary = await process_chunk(full_text)
+                summary = await process_chunk(full_text, websocket)
                 print("[PDF] Analysis complete")
                 return summary
             except Exception as e:
@@ -204,7 +219,6 @@ async def process_pdf(pdf_path: str, websocket: WebSocket) -> str:
 
 
 @app.websocket("/ws")
-# Backend: websocket_endpoint
 async def websocket_endpoint(websocket: WebSocket):
    await websocket.accept()
    print("[WS] Connected")
@@ -212,7 +226,7 @@ async def websocket_endpoint(websocket: WebSocket):
    tmp_path = None
    file_size = 0
 
-   heartbeat = asyncio.create_task(send_heartbeat(websocket))
+   heartbeat_task = asyncio.create_task(send_heartbeat(websocket))
 
    try:
        while True:
@@ -273,6 +287,7 @@ async def websocket_endpoint(websocket: WebSocket):
        except:
            print("[WS] Failed to send error")
    finally:
+       heartbeat_task.cancel()
        if tmp_path and os.path.exists(tmp_path):
            try:
                os.unlink(tmp_path)

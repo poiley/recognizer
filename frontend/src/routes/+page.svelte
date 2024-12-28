@@ -34,19 +34,39 @@
     }
 
     function bindWebSocketEvents() {
+        let lastHeartbeat = Date.now();
+        const HEARTBEAT_INTERVAL = 10000; // 10 seconds
+        const MAX_MISSED_HEARTBEATS = 3;
+
         function resetHeartbeat() {
             if (heartbeatTimeout) clearTimeout(heartbeatTimeout);
-            heartbeatTimeout = setTimeout(() => {
-                console.error("[WS] Heartbeat timeout");
+            lastHeartbeat = Date.now();
+            heartbeatTimeout = setTimeout(checkHeartbeat, HEARTBEAT_INTERVAL);
+        }
+
+        function checkHeartbeat() {
+            const timeSinceLastHeartbeat = Date.now() - lastHeartbeat;
+            if (
+                timeSinceLastHeartbeat >
+                HEARTBEAT_INTERVAL * MAX_MISSED_HEARTBEATS
+            ) {
+                console.error(
+                    "[WS] Connection dead - too many missed heartbeats",
+                );
                 ws.close();
-            }, 20000);
+            } else {
+                heartbeatTimeout = setTimeout(
+                    checkHeartbeat,
+                    HEARTBEAT_INTERVAL,
+                );
+            }
         }
 
         ws.onmessage = (event) => {
             console.log("[WS] Raw message:", event.data);
             try {
                 const data = JSON.parse(event.data);
-                if (data.type === "ping") {
+                if (data.status === "processing" || data.type === "ping") {
                     resetHeartbeat();
                     return;
                 }

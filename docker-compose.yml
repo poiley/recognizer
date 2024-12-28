@@ -26,6 +26,10 @@ services:
       - app_network
     volumes:
       - ollama_data:/root/.ollama
+    deploy:
+      resources:
+        limits:
+          memory: 8G
 
 networks:
   app_network:
