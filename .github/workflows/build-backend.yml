@@ -2,32 +2,33 @@ name: Backend Build
 on:
   push:
     paths:
-      - 'backend/**'
-      - '.github/workflows/backend.yml'
+      - "backend/**"
+      - ".github/workflows/backend.yml"
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-    
-    - name: Get version
-      id: version
-      run: |
-        VERSION=$(cat backend/version)
-        echo "VERSION=${VERSION}-$(date +'%Y%m%d')-$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
-    
-    - name: Build Backend
-      run: |
-        cd backend
-        docker build -t backend:${{ steps.version.outputs.VERSION }} .
-        docker save backend:${{ steps.version.outputs.VERSION }} | gzip > backend.tar.gz
-        echo ${{ steps.version.outputs.VERSION }} > version.txt
-        
-    - name: Upload artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: backend-image-${{ steps.version.outputs.VERSION }}
-        path: |
-          backend.tar.gz
-          version.txt
+      - uses: actions/checkout@v4
+
+      - name: Get version
+        id: version
+        run: |
+          cd backend
+          VERSION=$(cat version)
+          echo "VERSION=${VERSION}-$(date +'%Y%m%d')-$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+
+      - name: Build Backend
+        run: |
+          cd backend
+          docker build -t backend:${{ steps.version.outputs.VERSION }} .
+          docker save backend:${{ steps.version.outputs.VERSION }} | gzip > ../backend.tar.gz
+          echo ${{ steps.version.outputs.VERSION }} > ../version.txt
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-image-${{ steps.version.outputs.VERSION }}
+          path: |
+            backend.tar.gz
+            version.txt
