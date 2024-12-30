@@ -247,7 +247,7 @@
         converting: "Converting PDF...",
         processing: totalPages ? `Processing page ${currentPage}/${totalPages}...` : "Processing PDF...",
         analyzing: totalChunks ? 
-            `Analyzing section ${currentChunk}/${totalChunks}... (${estimatedTime})` : 
+            `Analyzing section ${currentChunk}/${totalChunks}... (est. ${estimatedTime})` : 
             "Analyzing content with AI...",
         complete: "Analysis complete!",
     }[status] || "Ready";
@@ -263,7 +263,10 @@
             bind:this={dropZone}
             on:dragover|preventDefault
             on:drop|preventDefault={handleDrop}
-            class="border-2 border-dashed border-accent rounded-lg p-8 text-center"
+            class="border border-white/30 p-4 text-center w-96 mx-auto"
+            role="button"
+            tabindex="0"
+            aria-label="Upload PDF file"
         >
             <input
                 type="file"
@@ -274,7 +277,7 @@
             />
             <label 
                 for="fileInput"
-                class="cursor-pointer text-accent hover:text-accent-dark"
+                class="cursor-pointer text-white hover:text-white/70"
             >
                 Click to upload or drag and drop a PDF file
             </label>
@@ -315,29 +318,3 @@
         </div>
     {/if}
 </div>
-
-<style>
-    /* Custom scrollbar for the summary section */
-    .summary-container {
-        max-height: 70vh;
-        overflow-y: auto;
-        padding-right: 1rem;
-        scrollbar-width: thin;
-        scrollbar-color: var(--accent) var(--secondary);
-    }
-    
-    .summary-container::-webkit-scrollbar {
-        width: 8px;
-    }
-    
-    .summary-container::-webkit-scrollbar-track {
-        background: var(--secondary);
-        border-radius: 4px;
-    }
-    
-    .summary-container::-webkit-scrollbar-thumb {
-        background-color: var(--accent);
-        border-radius: 4px;
-        border: 2px solid var(--secondary);
-    }
-</style>

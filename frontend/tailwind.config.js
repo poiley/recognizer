@@ -5,6 +5,9 @@ export default {
         colors: {
           accent: 'var(--accent)',
           secondary: 'var(--secondary)'
+        },
+        fontFamily: {
+          mono: ['IBM Plex Mono', 'monospace']
         }
       }
     }

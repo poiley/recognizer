@@ -8,6 +8,7 @@
   --text: #ffffff;
   --accent: #3b82f6;
   --secondary: #1f2937;
+  font-family: 'IBM Plex Mono', monospace;
 }
 
 .markdown-body {
