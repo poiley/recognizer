@@ -100,7 +100,7 @@
             <div class="relative w-[800px] h-[12px]">
                 <div bind:this={progressContainer} class="absolute inset-0"></div>
             </div>
-            <div class="flex justify-between w-full text-sm" style="margin-top: 2.5%; padding: 0px 15% 0 15%;">
+            <div class="flex justify-between w-full text-sm" style="margin-top: 3%; padding: 0px 15% 0 15%;">
                 <div class="text-white/70">
                     {#if status === 'analyzing'}
                         {#if isInFinalAnalysis}
@@ -117,7 +117,7 @@
                 </div>
             </div>
             {#if status === 'analyzing' && !isInFinalAnalysis}
-                <div class="text-white/50 text-xs mt-2">AI analysis in progress - this may take several minutes...</div>
+                <div class="text-white/50 text-xs mt-2" style="margin-top: 2%;">AI analysis in progress - this may take several minutes.</div>
             {/if}
         </div>
     {/if}

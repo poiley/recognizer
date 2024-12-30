@@ -1,7 +1,6 @@
 <script>
     import { onDestroy } from "svelte";
     import * as pdfjsLib from "pdfjs-dist";
-    import Spinner from "$lib/components/Spinner.svelte";
     import StatusIndicator from "$lib/components/StatusIndicator.svelte";
 
     const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100MB
@@ -312,10 +311,6 @@
             {estimatedTime}
             {warnings}
         />
-    {/if}
-
-    {#if status === 'analyzing' && !summary}
-        <div class="text-accent mt-4">AI analysis in progress - this may take several minutes...</div>
     {/if}
 
     {#if summary}
