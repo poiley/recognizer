@@ -23,6 +23,7 @@
     let currentChunk = 0;
     let totalChunks = 0;
     let estimatedTime = '';
+    let analysisProgress = 0;
 
     async function processFile(file) {
         try {
@@ -164,7 +165,9 @@
                     status = data.status;
                     if (data.progress !== undefined) {
                         progress = data.progress;
-                        analysisProgress = data.progress;
+                        if (status === 'analyzing') {
+                            analysisProgress = data.progress;
+                        }
                     }
                     if (data.page !== undefined) currentPage = data.page;
                     if (data.total !== undefined) totalPages = data.total;
