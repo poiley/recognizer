@@ -85,7 +85,15 @@
 
     function handleDrop(event) {
         event.preventDefault();
-        handleFileSelect(event);
+        const file = event.dataTransfer.files[0];
+        processFile(file);
+    }
+
+    function handleFileSelect(event) {
+        const file = event.dataTransfer?.files?.[0] || event.target?.files?.[0];
+        if (file) {
+            processFile(file);
+        }
     }
 
     async function connectWebSocket() {
@@ -260,10 +268,7 @@
 <div class="container mx-auto px-4 py-8">
     {#if !status || status === ''}
         <div
-            bind:this={dropZone}
-            on:dragover|preventDefault
-            on:drop|preventDefault={handleDrop}
-            class="border border-white/30 p-4 text-center w-96 mx-auto"
+            class="border border-white p-4 text-center w-96 mx-auto"
             role="button"
             tabindex="0"
             aria-label="Upload PDF file"
@@ -279,7 +284,7 @@
                 for="fileInput"
                 class="cursor-pointer text-white hover:text-white/70"
             >
-                Click to upload or drag and drop a PDF file
+                Click to upload a PDF
             </label>
         </div>
     {/if}
@@ -296,7 +301,7 @@
         </div>
     {/if}
 
-    {#if status && status !== 'complete' && status !== ''}
+    {#if status && status !== 'complete'}
         <StatusIndicator 
             {status}
             {progress}
@@ -309,12 +314,13 @@
         />
     {/if}
 
+    {#if status === 'analyzing' && !summary}
+        <div class="text-accent mt-4">AI analysis in progress - this may take several minutes...</div>
+    {/if}
+
     {#if summary}
-        <div class="mt-8 prose prose-sm max-w-none">
-            <div class="bg-white p-6 rounded-lg shadow-lg">
-                <h2 class="text-2xl font-bold mb-4">Summary</h2>
-                <div class="whitespace-pre-wrap">{summary}</div>
-            </div>
+        <div class="mt-8 font-mono text-white">
+            {@html summary}
         </div>
     {/if}
 </div>

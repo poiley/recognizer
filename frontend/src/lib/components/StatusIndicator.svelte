@@ -82,7 +82,7 @@
                     return 'Generating final summary';
                 }
                 if (totalChunks) {
-                    return `AI Analysis: Processing chunk ${currentChunk} of ${totalChunks} ${estimatedTime ? `(${estimatedTime})` : ''}`;
+                    return `AI Analysis: Processing chunk ${currentChunk} of ${totalChunks} ${estimatedTime ? `(est. ${estimatedTime})` : ''}`;
                 }
                 return 'Starting AI processing';
             case 'complete':
@@ -94,26 +94,31 @@
 </script>
 
 <div class="flex flex-col items-center justify-center gap-4">
-    <div class="text-lg font-semibold text-white text-center">{message}</div>
+    <div class="text-lg font-semibold text-white text-center" style="margin-bottom: 1.5%;">{message}</div>
     {#if status !== 'complete' && status !== ''}
         <div class="flex flex-col items-center justify-center gap-2">
             <div class="relative w-[800px] h-[12px]">
                 <div bind:this={progressContainer} class="absolute inset-0"></div>
             </div>
-            <div class="text-sm text-white/70 text-center">
-                {#if status === 'analyzing'}
-                    {#if isInFinalAnalysis}
-                        Final Analysis
-                    {:else}
-                        Processing Document
+            <div class="flex justify-between w-full text-sm" style="margin-top: 2.5%; padding: 0px 15% 0 15%;">
+                <div class="text-white/70">
+                    {#if status === 'analyzing'}
+                        {#if isInFinalAnalysis}
+                            Final Analysis
+                        {:else}
+                            Processing Document
+                        {/if}
+                    {:else if status === 'processing'}
+                        OCR Analysis
                     {/if}
-                {:else if status === 'processing'}
-                    OCR Analysis
-                {/if}
+                </div>
+                <div class="text-white">
+                    {Math.round(progressPercent * 100)}%
+                </div>
             </div>
-            <div class="text-white text-sm text-center">
-                {Math.round(progressPercent * 100)}%
-            </div>
+            {#if status === 'analyzing' && !isInFinalAnalysis}
+                <div class="text-white/50 text-xs mt-2">AI analysis in progress - this may take several minutes...</div>
+            {/if}
         </div>
     {/if}
 </div>
