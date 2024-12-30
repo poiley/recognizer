@@ -258,33 +258,28 @@
 </script>
 
 <div class="container mx-auto px-4 py-8">
-    <div 
-        class="border-2 border-dashed border-accent rounded-lg p-8 text-center"
-        on:dragover|preventDefault={(e) => {
-            e.dataTransfer.dropEffect = 'copy';
-            dropZone.classList.add("border-accent");
-        }}
-        on:dragleave={() => dropZone.classList.remove("border-accent")}
-        on:drop|preventDefault={(e) => {
-            dropZone.classList.remove("border-accent");
-            processFile(e.dataTransfer.files[0]);
-        }}
-        bind:this={dropZone}
-    >
-        <input 
-            type="file" 
-            accept=".pdf" 
-            on:change={(e) => processFile(e.target.files[0])}
-            class="hidden" 
-            id="fileInput"
-        />
-        <label 
-            for="fileInput"
-            class="cursor-pointer text-accent hover:text-accent-dark"
+    {#if !status || status === ''}
+        <div
+            bind:this={dropZone}
+            on:dragover|preventDefault
+            on:drop|preventDefault={handleDrop}
+            class="border-2 border-dashed border-accent rounded-lg p-8 text-center"
         >
-            Click to upload or drag and drop a PDF file
-        </label>
-    </div>
+            <input
+                type="file"
+                accept=".pdf"
+                on:change={(e) => processFile(e.target.files[0])}
+                class="hidden" 
+                id="fileInput"
+            />
+            <label 
+                for="fileInput"
+                class="cursor-pointer text-accent hover:text-accent-dark"
+            >
+                Click to upload or drag and drop a PDF file
+            </label>
+        </div>
+    {/if}
 
     {#if error}
         <div class="mt-4 text-red-500">{error}</div>
