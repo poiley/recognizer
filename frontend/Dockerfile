@@ -11,7 +11,7 @@ RUN npm install --force
 COPY . .
 
 # Ensure a clean rebuild
-RUN rm -rf node_modules package-lock.json && npm install --force
+RUN rm -rf node_modules package-lock.json && npm install
 
 # Build the project
 RUN npm run build

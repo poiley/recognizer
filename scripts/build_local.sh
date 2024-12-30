@@ -40,3 +40,5 @@ docker build -t backend:${BE_VERSION}-snapshot .
 
 cd ..
 docker-compose up -d
+
+exit 0
