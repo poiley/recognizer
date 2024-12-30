@@ -1,7 +1,6 @@
 <script>
     import { onDestroy } from "svelte";
     import * as pdfjsLib from "pdfjs-dist";
-    import Spinner from "$lib/components/Spinner.svelte";
     import StatusIndicator from "$lib/components/StatusIndicator.svelte";
 
     const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100MB
@@ -85,7 +84,15 @@
 
     function handleDrop(event) {
         event.preventDefault();
-        handleFileSelect(event);
+        const file = event.dataTransfer.files[0];
+        processFile(file);
+    }
+
+    function handleFileSelect(event) {
+        const file = event.dataTransfer?.files?.[0] || event.target?.files?.[0];
+        if (file) {
+            processFile(file);
+        }
     }
 
     async function connectWebSocket() {
@@ -247,7 +254,7 @@
         converting: "Converting PDF...",
         processing: totalPages ? `Processing page ${currentPage}/${totalPages}...` : "Processing PDF...",
         analyzing: totalChunks ? 
-            `Analyzing section ${currentChunk}/${totalChunks}... (${estimatedTime})` : 
+            `Analyzing section ${currentChunk}/${totalChunks}... (est. ${estimatedTime})` : 
             "Analyzing content with AI...",
         complete: "Analysis complete!",
     }[status] || "Ready";
@@ -258,33 +265,28 @@
 </script>
 
 <div class="container mx-auto px-4 py-8">
-    <div 
-        class="border-2 border-dashed border-accent rounded-lg p-8 text-center"
-        on:dragover|preventDefault={(e) => {
-            e.dataTransfer.dropEffect = 'copy';
-            dropZone.classList.add("border-accent");
-        }}
-        on:dragleave={() => dropZone.classList.remove("border-accent")}
-        on:drop|preventDefault={(e) => {
-            dropZone.classList.remove("border-accent");
-            processFile(e.dataTransfer.files[0]);
-        }}
-        bind:this={dropZone}
-    >
-        <input 
-            type="file" 
-            accept=".pdf" 
-            on:change={(e) => processFile(e.target.files[0])}
-            class="hidden" 
-            id="fileInput"
-        />
-        <label 
-            for="fileInput"
-            class="cursor-pointer text-accent hover:text-accent-dark"
+    {#if !status || status === ''}
+        <div
+            class="border border-white p-4 text-center w-96 mx-auto"
+            role="button"
+            tabindex="0"
+            aria-label="Upload PDF file"
         >
-            Click to upload or drag and drop a PDF file
-        </label>
-    </div>
+            <input
+                type="file"
+                accept=".pdf"
+                on:change={(e) => processFile(e.target.files[0])}
+                class="hidden" 
+                id="fileInput"
+            />
+            <label 
+                for="fileInput"
+                class="cursor-pointer text-white hover:text-white/70"
+            >
+                Click to upload a PDF
+            </label>
+        </div>
+    {/if}
 
     {#if error}
         <div class="mt-4 text-red-500">{error}</div>
@@ -298,7 +300,7 @@
         </div>
     {/if}
 
-    {#if status && status !== 'complete' && status !== ''}
+    {#if status && status !== 'complete'}
         <StatusIndicator 
             {status}
             {progress}
@@ -312,37 +314,8 @@
     {/if}
 
     {#if summary}
-        <div class="mt-8 prose prose-sm max-w-none">
-            <div class="bg-white p-6 rounded-lg shadow-lg">
-                <h2 class="text-2xl font-bold mb-4">Summary</h2>
-                <div class="whitespace-pre-wrap">{summary}</div>
-            </div>
+        <div class="mt-8 font-mono text-white">
+            {@html summary}
         </div>
     {/if}
 </div>
-
-<style>
-    /* Custom scrollbar for the summary section */
-    .summary-container {
-        max-height: 70vh;
-        overflow-y: auto;
-        padding-right: 1rem;
-        scrollbar-width: thin;
-        scrollbar-color: var(--accent) var(--secondary);
-    }
-    
-    .summary-container::-webkit-scrollbar {
-        width: 8px;
-    }
-    
-    .summary-container::-webkit-scrollbar-track {
-        background: var(--secondary);
-        border-radius: 4px;
-    }
-    
-    .summary-container::-webkit-scrollbar-thumb {
-        background-color: var(--accent);
-        border-radius: 4px;
-        border: 2px solid var(--secondary);
-    }
-</style>

@@ -125,7 +125,7 @@ async def process_chunk(text: str, websocket: WebSocket) -> str:
                     'message': f'Analyzing section {i+1} of {len(chunks)}...',
                     'current_chunk': i + 1,
                     'total_chunks': len(chunks),
-                    'estimated_time': '2-3 minutes'
+                    'estimated_time': '2 - 3 minutes'
                 })
 
                 try:

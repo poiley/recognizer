@@ -8,11 +8,25 @@
   --text: #ffffff;
   --accent: #3b82f6;
   --secondary: #1f2937;
+  font-family: 'IBM Plex Mono', monospace;
 }
 
 .markdown-body {
-  background-color: var(--secondary) !important;
+  background-color: transparent !important;
   color: var(--text) !important;
+  font-family: 'IBM Plex Mono', monospace !important;
+}
+
+.markdown-body h1,
+.markdown-body h2,
+.markdown-body h3,
+.markdown-body h4,
+.markdown-body h5,
+.markdown-body h6,
+.markdown-body p,
+.markdown-body li {
+  color: var(--text) !important;
+  font-family: 'IBM Plex Mono', monospace !important;
 }
 
 .file-drop-zone {
