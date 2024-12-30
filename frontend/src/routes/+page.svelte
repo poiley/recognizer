@@ -2,6 +2,7 @@
     import { onDestroy } from "svelte";
     import * as pdfjsLib from "pdfjs-dist";
     import Spinner from "$lib/components/Spinner.svelte";
+    import StatusIndicator from "$lib/components/StatusIndicator.svelte";
 
     const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100MB
     const MAX_RETRIES = 3;
@@ -19,127 +20,10 @@
     let totalPages = 0;
     let status = "";
     let heartbeatTimeout;
-
-    async function connectWebSocket() {
-        try {
-            ws = new WebSocket("ws://localhost:8000/ws");
-            await new Promise((resolve, reject) => {
-                ws.onopen = resolve;
-                ws.onerror = reject;
-            });
-            bindWebSocketEvents();
-        } catch (e) {
-            await handleRetry(e);
-        }
-    }
-
-    function bindWebSocketEvents() {
-        let lastHeartbeat = Date.now();
-        const HEARTBEAT_INTERVAL = 10000; // 10 seconds
-        const MAX_MISSED_HEARTBEATS = 3;
-
-        function resetHeartbeat() {
-            if (heartbeatTimeout) clearTimeout(heartbeatTimeout);
-            lastHeartbeat = Date.now();
-            heartbeatTimeout = setTimeout(checkHeartbeat, HEARTBEAT_INTERVAL);
-        }
-
-        function checkHeartbeat() {
-            const timeSinceLastHeartbeat = Date.now() - lastHeartbeat;
-            if (
-                timeSinceLastHeartbeat >
-                HEARTBEAT_INTERVAL * MAX_MISSED_HEARTBEATS
-            ) {
-                console.error(
-                    "[WS] Connection dead - too many missed heartbeats",
-                );
-                ws.close();
-            } else {
-                heartbeatTimeout = setTimeout(
-                    checkHeartbeat,
-                    HEARTBEAT_INTERVAL,
-                );
-            }
-        }
-
-        ws.onmessage = (event) => {
-            console.log("[WS] Raw message:", event.data);
-            try {
-                const data = JSON.parse(event.data);
-                if (data.status === "processing" || data.type === "ping") {
-                    resetHeartbeat();
-                    return;
-                }
-                console.log("[WS] Parsed:", data);
-
-                if (data.error) {
-                    console.error("[WS] Error:", data.error);
-                    error = data.error;
-                    loading = false;
-                } else if (data.status) {
-                    console.log("[WS] Status:", data.status);
-                    status = data.status;
-                    switch (data.status) {
-                        case "receiving":
-                            if (data.progress) {
-                                progress = data.progress;
-                                console.log("[WS] Upload progress:", progress);
-                            }
-                            break;
-                        case "processing":
-                            progress = 1;
-                            break;
-                        case "analyzing":
-                            console.log("[WS] Analysis started");
-                            break;
-                        case "complete":
-                            console.log("[WS] Processing complete");
-                            summary = data.summary;
-                            loading = false;
-                            ws.send(JSON.stringify({ type: "ack" }));
-                            break;
-                    }
-                } else if (data.warning) {
-                    console.warn("[WS] Warning:", data.warning);
-                    warnings = [...warnings, data.warning];
-                }
-            } catch (e) {
-                console.error("[WS] Parse error:", e);
-                error = "Failed to process server response";
-                loading = false;
-            }
-        };
-
-        ws.onerror = (event) => {
-            console.error("[WS] Connection error:", event);
-            error = "Connection error";
-            loading = false;
-        };
-
-        ws.onclose = (event) => {
-            console.log(
-                "[WS] Closed with code:",
-                event.code,
-                "reason:",
-                event.reason,
-            );
-            if (event.code !== 1000 && !summary) {
-                error = `Connection lost (${event.code})${event.reason ? ": " + event.reason : ""}`;
-            }
-            loading = false;
-        };
-    }
-
-    async function handleRetry(e) {
-        if (retryCount < MAX_RETRIES) {
-            retryCount++;
-            await new Promise((r) => setTimeout(r, RETRY_DELAY));
-            await connectWebSocket();
-        } else {
-            error = `Connection failed after ${MAX_RETRIES} attempts: ${e.message}`;
-            loading = false;
-        }
-    }
+    let currentChunk = 0;
+    let totalChunks = 0;
+    let estimatedTime = '';
+    let analysisProgress = 0;
 
     async function processFile(file) {
         try {
@@ -194,6 +78,155 @@
         }
     }
 
+    function handleDragOver(event) {
+        event.preventDefault();
+        event.dataTransfer.dropEffect = 'copy';
+    }
+
+    function handleDrop(event) {
+        event.preventDefault();
+        handleFileSelect(event);
+    }
+
+    async function connectWebSocket() {
+        try {
+            ws = new WebSocket("ws://localhost:8000/ws");
+            await new Promise((resolve, reject) => {
+                ws.onopen = resolve;
+                ws.onerror = reject;
+            });
+            bindWebSocketEvents();
+        } catch (e) {
+            await handleRetry(e);
+        }
+    }
+
+    function bindWebSocketEvents() {
+        let lastHeartbeat = Date.now();
+        const HEARTBEAT_INTERVAL = 7000;  // 7 seconds
+        const ANALYSIS_HEARTBEAT_INTERVAL = 30000;  // 30 seconds during analysis
+        const MAX_MISSED_HEARTBEATS = 3;
+        const MAX_ANALYSIS_MISSED_HEARTBEATS = 10;  // Much more tolerant during analysis
+        let missedHeartbeats = 0;
+
+        function resetHeartbeat() {
+            if (heartbeatTimeout) clearTimeout(heartbeatTimeout);
+            lastHeartbeat = Date.now();
+            missedHeartbeats = 0;
+            heartbeatTimeout = setTimeout(checkHeartbeat, 
+                status === 'analyzing' ? ANALYSIS_HEARTBEAT_INTERVAL : HEARTBEAT_INTERVAL
+            );
+        }
+
+        function checkHeartbeat() {
+            const currentInterval = status === 'analyzing' ? 
+                ANALYSIS_HEARTBEAT_INTERVAL : HEARTBEAT_INTERVAL;
+            const maxMissed = status === 'analyzing' ? 
+                MAX_ANALYSIS_MISSED_HEARTBEATS : MAX_MISSED_HEARTBEATS;
+            
+            const timeSinceLastHeartbeat = Date.now() - lastHeartbeat;
+            if (timeSinceLastHeartbeat > currentInterval) {
+                missedHeartbeats++;
+                console.warn("[WS] Missed heartbeats:", missedHeartbeats);
+                
+                if (status === 'analyzing') {
+                    if (missedHeartbeats >= maxMissed) {
+                        console.warn("[WS] Extended processing time during analysis");
+                        if (!warnings.includes("AI analysis in progress - this may take several minutes...")) {
+                            warnings = [...warnings, "AI analysis in progress - this may take several minutes..."];
+                        }
+                    }
+                } else if (missedHeartbeats >= maxMissed) {
+                    console.error("[WS] Connection dead - too many missed heartbeats");
+                    error = "Connection lost";
+                    if (ws && ws.readyState === WebSocket.OPEN) {
+                        ws.close();
+                    }
+                    return;
+                }
+            }
+            heartbeatTimeout = setTimeout(checkHeartbeat, currentInterval);
+        }
+
+        ws.onmessage = (event) => {
+            console.log("[WS] Raw message:", event.data);
+            try {
+                const data = JSON.parse(event.data);
+                console.log("[WS] Parsed:", data);
+
+                resetHeartbeat();
+                
+                if (data.type === "ping") {
+                    return;
+                }
+
+                // Handle status updates
+                if (data.status) {
+                    status = data.status;
+                    if (data.progress !== undefined) {
+                        progress = data.progress;
+                        if (status === 'analyzing') {
+                            analysisProgress = data.progress;
+                        }
+                    }
+                    if (data.page !== undefined) currentPage = data.page;
+                    if (data.total !== undefined) totalPages = data.total;
+                    if (data.current_chunk !== undefined) currentChunk = data.current_chunk;
+                    if (data.total_chunks !== undefined) totalChunks = data.total_chunks;
+                    if (data.estimated_time !== undefined) estimatedTime = data.estimated_time;
+                    if (data.summary !== undefined) {
+                        summary = data.summary;
+                        loading = false;
+                    }
+                }
+
+                if (data.error) {
+                    console.error("[WS] Error:", data.error);
+                    error = data.error;
+                    loading = false;
+                } else if (data.warning) {
+                    console.warn("[WS] Warning:", data.warning);
+                    warnings = [...warnings, data.warning];
+                }
+            } catch (e) {
+                console.error("[WS] Parse error:", e);
+                error = "Failed to process server response";
+            }
+        };
+
+        ws.onerror = (event) => {
+            console.error("[WS] WebSocket error:", event);
+            error = "Connection error occurred";
+        };
+
+        ws.onclose = (event) => {
+            console.log(
+                "[WS] Closed with code:",
+                event.code,
+                "reason:",
+                event.reason,
+            );
+            if (event.code !== 1000 && !summary) {
+                error = `Connection lost (${event.code})${event.reason ? ": " + event.reason : ""}`;
+            }
+            loading = false;
+        };
+
+        // Start heartbeat checking
+        resetHeartbeat();
+    }
+
+    async function handleRetry(e) {
+        if (retryCount < MAX_RETRIES) {
+            retryCount++;
+            await new Promise((r) => setTimeout(r, RETRY_DELAY));
+            await connectWebSocket();
+        } else {
+            error = `Connection failed after ${MAX_RETRIES} attempts: ${e.message}`;
+            loading = false;
+        }
+    }
+
     function downloadMarkdown() {
         const blob = new Blob([summary], { type: "text/markdown" });
         const url = URL.createObjectURL(blob);
@@ -209,94 +242,107 @@
         if (ws) ws.close();
     });
 
-    $: statusMessage =
-        {
-            receiving: "Uploading document...",
-            processing: "Processing PDF...",
-            analyzing: "Analyzing content with AI...",
-            complete: "Analysis complete!",
-        }[status] || "Ready";
+    $: statusMessage = {
+        receiving: "Uploading document...",
+        converting: "Converting PDF...",
+        processing: totalPages ? `Processing page ${currentPage}/${totalPages}...` : "Processing PDF...",
+        analyzing: totalChunks ? 
+            `Analyzing section ${currentChunk}/${totalChunks}... (${estimatedTime})` : 
+            "Analyzing content with AI...",
+        complete: "Analysis complete!",
+    }[status] || "Ready";
+
+    $: progress = status === "analyzing" ? analysisProgress : 
+                 status === "processing" ? currentPage / totalPages : 
+                 status === "receiving" ? 0 : 1;
 </script>
 
-<div class="max-w-4xl mx-auto">
-    <div class="text-sm text-gray-400 mb-2">
-        {statusMessage}
-    </div>
-
-    <div
-        bind:this={dropZone}
-        role="button"
-        tabindex="0"
-        aria-label="Drop zone for PDF files"
-        class="file-drop-zone p-12 text-center rounded {error
-            ? 'border-red-500'
-            : ''}"
-        on:drop|preventDefault={(e) => processFile(e.dataTransfer.files[0])}
-        on:dragover|preventDefault={() =>
-            dropZone.classList.add("border-accent")}
-        on:dragleave={() => dropZone.classList.remove("border-accent")}
-        on:keydown={(e) => {
-            if (e.key === "Enter" || e.key === " ") {
-                const input = e.target.querySelector('input[type="file"]');
-                input?.click();
-            }
+<div class="container mx-auto px-4 py-8">
+    <div 
+        class="border-2 border-dashed border-accent rounded-lg p-8 text-center"
+        on:dragover|preventDefault={(e) => {
+            e.dataTransfer.dropEffect = 'copy';
+            dropZone.classList.add("border-accent");
         }}
+        on:dragleave={() => dropZone.classList.remove("border-accent")}
+        on:drop|preventDefault={(e) => {
+            dropZone.classList.remove("border-accent");
+            processFile(e.dataTransfer.files[0]);
+        }}
+        bind:this={dropZone}
     >
-        {#if loading}
-            <div class="flex flex-col items-center gap-4">
-                <Spinner />
-                {#if progress < 1}
-                    <div>Uploading PDF ({Math.round(progress * 100)}%)</div>
-                {:else}
-                    <div>{statusMessage}</div>
-                {/if}
-                <div class="w-64 h-2 bg-secondary rounded-full">
-                    <div
-                        class="h-full bg-accent rounded-full transition-all"
-                        style="width: {progress * 100}%"
-                    ></div>
-                </div>
-            </div>
-        {:else}
-            <p>
-                Drop PDF here or <label class="text-accent cursor-pointer">
-                    browse
-                    <input
-                        type="file"
-                        class="hidden"
-                        accept=".pdf"
-                        on:change={(e) => processFile(e.target.files[0])}
-                    />
-                </label>
-            </p>
-        {/if}
+        <input 
+            type="file" 
+            accept=".pdf" 
+            on:change={(e) => processFile(e.target.files[0])}
+            class="hidden" 
+            id="fileInput"
+        />
+        <label 
+            for="fileInput"
+            class="cursor-pointer text-accent hover:text-accent-dark"
+        >
+            Click to upload or drag and drop a PDF file
+        </label>
     </div>
 
     {#if error}
-        <div class="mt-4 p-4 bg-red-900/50 text-red-200 rounded">
-            {error}
-        </div>
+        <div class="mt-4 text-red-500">{error}</div>
     {/if}
 
     {#if warnings.length > 0}
-        <div class="mt-4 space-y-2">
+        <div class="mt-4">
             {#each warnings as warning}
-                <div class="p-3 bg-yellow-900/50 text-yellow-200 rounded">
-                    {warning}
-                </div>
+                <div class="text-yellow-500">{warning}</div>
             {/each}
         </div>
     {/if}
 
+    {#if status && status !== 'complete' && status !== ''}
+        <StatusIndicator 
+            {status}
+            {progress}
+            {currentPage}
+            {totalPages}
+            {currentChunk}
+            {totalChunks}
+            {estimatedTime}
+            {warnings}
+        />
+    {/if}
+
     {#if summary}
-        <div class="markdown-body mt-8 p-4 rounded">
-            {summary}
-            <button
-                on:click={downloadMarkdown}
-                class="mt-4 px-4 py-2 bg-accent rounded hover:bg-accent/80"
-            >
-                Download Markdown
-            </button>
+        <div class="mt-8 prose prose-sm max-w-none">
+            <div class="bg-white p-6 rounded-lg shadow-lg">
+                <h2 class="text-2xl font-bold mb-4">Summary</h2>
+                <div class="whitespace-pre-wrap">{summary}</div>
+            </div>
         </div>
     {/if}
 </div>
+
+<style>
+    /* Custom scrollbar for the summary section */
+    .summary-container {
+        max-height: 70vh;
+        overflow-y: auto;
+        padding-right: 1rem;
+        scrollbar-width: thin;
+        scrollbar-color: var(--accent) var(--secondary);
+    }
+    
+    .summary-container::-webkit-scrollbar {
+        width: 8px;
+    }
+    
+    .summary-container::-webkit-scrollbar-track {
+        background: var(--secondary);
+        border-radius: 4px;
+    }
+    
+    .summary-container::-webkit-scrollbar-thumb {
+        background-color: var(--accent);
+        border-radius: 4px;
+        border: 2px solid var(--secondary);
+    }
+</style>
