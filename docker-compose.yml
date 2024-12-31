@@ -14,6 +14,7 @@ services:
       - app_network
     environment:
       - OLLAMA_HOST=http://ollama:11434
+      - PYTHONUNBUFFERED=1
     depends_on:
       - ollama
 
