@@ -2,6 +2,15 @@
     import { onDestroy } from "svelte";
     import * as pdfjsLib from "pdfjs-dist";
     import StatusIndicator from "$lib/components/StatusIndicator.svelte";
+    import { marked } from 'marked';
+
+    marked.setOptions({
+        breaks: true,
+        gfm: true,
+        headerIds: true,
+        mangle: false,
+        smartLists: true,
+    });
 
     const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100MB
     const MAX_RETRIES = 3;
@@ -192,6 +201,9 @@
                 if (data.summary !== undefined) {
                     summary = data.summary;
                     loading = false;
+                    if (ws && ws.readyState === WebSocket.OPEN) {
+                        ws.close(1000, "Processing complete");
+                    }
                 }
 
                 if (data.error) {
@@ -321,8 +333,8 @@
     {/if}
 
     {#if summary}
-        <div class="mt-8 font-mono text-white">
-            {@html summary}
+        <div class="mt-8 font-mono text-white markdown-body">
+            {@html marked(summary)}
         </div>
     {/if}
 </div>

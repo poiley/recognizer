@@ -48,8 +48,8 @@
     }
 
     onDestroy(() => {
-        if (loadingBar) {
-            loadingBar.destroy();
+        if (loadingBar && progressContainer) {
+            progressContainer.innerHTML = '';
         }
     });
 
