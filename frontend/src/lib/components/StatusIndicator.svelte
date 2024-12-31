@@ -73,10 +73,7 @@
             case 'converted':
                 return `Ready to process ${totalPages} pages`;
             case 'processing':
-                if (totalPages) {
-                    return `OCR processing page ${currentPage} of ${totalPages}`;
-                }
-                return 'Processing...';
+                return `OCR processing page ${currentPage} of ${totalPages}`;
             case 'analyzing':
                 if (isInFinalAnalysis) {
                     return 'Generating final summary';
@@ -94,33 +91,35 @@
 </script>
 
 <div class="flex flex-col items-center justify-center gap-4">
-    <div class="text-lg font-semibold text-white text-center" style="margin-bottom: 1.5%;">{message}</div>
-    {#if status !== 'complete' && status !== ''}
-        <div class="flex flex-col items-center justify-center gap-2">
-            <div class="relative w-[800px] h-[12px]">
-                <div bind:this={progressContainer} class="absolute inset-0"></div>
-            </div>
-            <div class="flex justify-between w-full text-sm" style="margin-top: 3%; padding: 0px 15% 0 15%;">
-                <div class="text-white/70">
-                    {#if status === 'analyzing'}
-                        {#if isInFinalAnalysis}
-                            Final Analysis
-                        {:else}
-                            Processing Document
+    <div class="border border-white p-8 w-[800px]">
+        <div class="text-lg font-semibold text-white text-center mb-6">{message}</div>
+        {#if status !== 'complete' && status !== ''}
+            <div class="flex flex-col items-center justify-center gap-2">
+                <div class="relative w-full h-[12px]">
+                    <div bind:this={progressContainer} class="absolute inset-0"></div>
+                </div>
+                <div class="flex justify-between w-full text-sm mt-4">
+                    <div class="text-white/70">
+                        {#if status === 'analyzing'}
+                            {#if isInFinalAnalysis}
+                                Final Analysis
+                            {:else}
+                                Processing Document
+                            {/if}
+                        {:else if status === 'processing'}
+                            OCR Analysis
                         {/if}
-                    {:else if status === 'processing'}
-                        OCR Analysis
-                    {/if}
+                    </div>
+                    <div class="text-white">
+                        {Math.round(progressPercent * 100)}%
+                    </div>
                 </div>
-                <div class="text-white">
-                    {Math.round(progressPercent * 100)}%
-                </div>
+                {#if status === 'analyzing' && !isInFinalAnalysis}
+                    <div class="text-white/50 text-xs mt-4">AI analysis in progress - this may take several minutes.</div>
+                {/if}
             </div>
-            {#if status === 'analyzing' && !isInFinalAnalysis}
-                <div class="text-white/50 text-xs mt-2" style="margin-top: 2%;">AI analysis in progress - this may take several minutes.</div>
-            {/if}
-        </div>
-    {/if}
+        {/if}
+    </div>
 </div>
 
 <style>
