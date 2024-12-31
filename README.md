@@ -1,13 +1,12 @@
-# PDF Recognition & Analysis
+# Recognizer
 
-Process and analyze PDF documents using AI. Upload PDFs to get markdown summaries and analysis.
+Analyze, summarize, and explain information in PDF textbooks and whitepapers using self-hosted AI. Upload PDFs to get markdown summaries and analysis.
 
 ## Features
 - PDF text extraction and processing
 - AI-powered document analysis
 - Real-time progress tracking
 - Markdown output
-- OLED dark theme
 
 ## Documentation
 - [API](docs/api/endpoints.md)
