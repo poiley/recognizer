@@ -16,30 +16,45 @@ def count_tokens(text: str) -> int:
 
 def split_into_chunks(text: str, chunk_size: int = 2000) -> List[str]:
     """
-    Split text into chunks of approximately equal token counts.
+    Split text into chunks while trying to preserve paragraph structure.
     
     Args:
         text: Text to split
         chunk_size: Target size for each chunk in tokens (default 2000)
         
     Returns:
-        List of text chunks with approximately chunk_size tokens each
+        List of text chunks with approximately chunk_size tokens each,
+        preserving paragraph boundaries where possible
     """
-    words = text.split()
+    # Split into paragraphs first
+    paragraphs = text.split('\n\n')
     chunks = []
     current_chunk = []
     current_token_count = 0
     
-    for word in words:
-        word_tokens = count_tokens(word + ' ')
+    for paragraph in paragraphs:
+        paragraph_tokens = count_tokens(paragraph + '\n\n')
         
-        if current_token_count + word_tokens > chunk_size and current_chunk:
+        # If a single paragraph exceeds chunk size, split it on sentences
+        if paragraph_tokens > chunk_size:
+            sentences = paragraph.replace('. ', '.\n').split('\n')
+            for sentence in sentences:
+                sentence_tokens = count_tokens(sentence + ' ')
+                if current_token_count + sentence_tokens > chunk_size and current_chunk:
+                    chunks.append(' '.join(current_chunk))
+                    current_chunk = [sentence]
+                    current_token_count = sentence_tokens
+                else:
+                    current_chunk.append(sentence)
+                    current_token_count += sentence_tokens
+        # Otherwise try to keep paragraphs together
+        elif current_token_count + paragraph_tokens > chunk_size and current_chunk:
             chunks.append(' '.join(current_chunk))
-            current_chunk = [word]
-            current_token_count = word_tokens
+            current_chunk = [paragraph]
+            current_token_count = paragraph_tokens
         else:
-            current_chunk.append(word)
-            current_token_count += word_tokens
+            current_chunk.append(paragraph)
+            current_token_count += paragraph_tokens
             
     if current_chunk:
         chunks.append(' '.join(current_chunk))

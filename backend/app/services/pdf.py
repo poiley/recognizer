@@ -43,6 +43,7 @@ async def process_pdf(pdf_path: str, websocket: WebSocket) -> str:
             text = process_image(image)
             if text:
                 all_text.append(text)
+                logger.info(f"OCR Text from page {i}/{total_pages} (length: {len(text)} chars):\n{text}")
                 
             await websocket.send_json({
                 'status': 'processing',
@@ -53,6 +54,7 @@ async def process_pdf(pdf_path: str, websocket: WebSocket) -> str:
 
         # Process text chunks
         combined_text = ' '.join(all_text)
+        logger.info(f"Complete OCR Text before chunking (length: {len(combined_text)} chars):\n{combined_text}")
         chunks = split_into_chunks(combined_text)
         total_chunks = len(chunks)
         
@@ -65,19 +67,36 @@ async def process_pdf(pdf_path: str, websocket: WebSocket) -> str:
 
         # Process chunks with AI
         summaries = []
-        for i, chunk in enumerate(chunks, 1):
-            summary = await process_chunk(chunk, websocket)
+        running_summary = None
+        for i, chunk in enumerate(chunks):
+            summary = await process_chunk(
+                chunk, 
+                websocket, 
+                chunk_index=i,
+                total_chunks=total_chunks,
+                previous_summary=running_summary
+            )
             summaries.append(summary)
+            # Keep only the most recent summary for context
+            running_summary = summary
             
             await websocket.send_json({
                 'status': 'analyzing',
-                'current_chunk': i,
+                'current_chunk': i + 1,
                 'total_chunks': total_chunks,
-                'progress': i / total_chunks,
-                'estimated_remaining': estimate_remaining_time(i, total_chunks)
+                'progress': (i + 1) / total_chunks,
+                'estimated_remaining': estimate_remaining_time(i + 1, total_chunks)
             })
 
-        return '\n\n'.join(summaries)
+        # Combine summaries with proper section numbering and formatting
+        sections = []
+        for i, summary in enumerate(summaries, 1):
+            section_header = f"## Section {i}"
+            sections.append(f"{section_header}\n\n{summary}")
+        
+        final_summary = "# Document Summary\n\n" + "\n\n".join(sections)
+        logger.info(f"Final Combined Summary:\n{final_summary}")
+        return final_summary
 
     except Exception as e:
         logger.error(f"PDF processing failed: {str(e)}")
