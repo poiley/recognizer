@@ -181,10 +181,17 @@
                     if (data.current_chunk !== undefined) currentChunk = data.current_chunk;
                     if (data.total_chunks !== undefined) totalChunks = data.total_chunks;
                     if (data.estimated_time !== undefined) estimatedTime = data.estimated_time;
-                    if (data.summary !== undefined) {
-                        summary = data.summary;
-                        loading = false;
-                    }
+                }
+
+                // Handle completion message separately from status updates
+                if (data.complete) {
+                    status = 'complete';
+                    loading = false;
+                }
+                
+                if (data.summary !== undefined) {
+                    summary = data.summary;
+                    loading = false;
                 }
 
                 if (data.error) {
