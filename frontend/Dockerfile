@@ -1,23 +1,22 @@
 FROM node:20-alpine
-
-# Set working directory
 WORKDIR /app
 
-# Copy package files and install dependencies
+# Install dependencies first (better caching)
 COPY package*.json ./
+RUN npm install -g npm@latest
 RUN npm install
 
-# Copy the remaining application files
+# Copy source and build
 COPY . .
-
-# Ensure a clean rebuild
-RUN rm -rf node_modules package-lock.json && npm install
-
-# Build the project
 RUN npm run build
 
-# Expose the development port
+# Clean dev environment
+RUN rm -rf node_modules
+RUN npm install
+
+# Runtime config
+ENV HOST=0.0.0.0
 EXPOSE 5173
 
-# Start the development server
+# Start dev server
 CMD ["npm", "run", "dev", "--", "--host"]
