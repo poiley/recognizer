@@ -37,3 +37,85 @@
 .file-drop-zone:hover {
   border-color: var(--text);
 }
+
+/* Global styles */
+.markdown-content {
+    color: #ffffff;
+    line-height: 1.6;
+}
+
+.markdown-content h1 {
+    font-size: 2.25rem;
+    font-weight: 700;
+    margin: 2rem 0 1.5rem;
+}
+
+.markdown-content h2 {
+    font-size: 1.875rem;
+    font-weight: 600;
+    margin: 1.75rem 0 1.25rem;
+}
+
+.markdown-content h3 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin: 1.5rem 0 1rem;
+}
+
+.markdown-content p {
+    margin-bottom: 1rem;
+}
+
+.markdown-content ul,
+.markdown-content ol {
+    margin: 1rem 0;
+    padding-left: 1.5rem;
+}
+
+.markdown-content ul {
+    list-style-type: disc;
+}
+
+.markdown-content ol {
+    list-style-type: decimal;
+}
+
+.markdown-content li {
+    margin: 0.5rem 0;
+}
+
+.markdown-content code {
+    background-color: #1a1a1a;
+    padding: 0.2rem 0.4rem;
+    border-radius: 0.25rem;
+    font-family: 'IBM Plex Mono', monospace;
+}
+
+.markdown-content pre {
+    background-color: #1a1a1a;
+    padding: 1rem;
+    margin: 1rem 0;
+    border-radius: 0.5rem;
+    overflow-x: auto;
+}
+
+.markdown-content pre code {
+    background-color: transparent;
+    padding: 0;
+}
+
+.markdown-content blockquote {
+    border-left: 4px solid #4a4a4a;
+    margin: 1rem 0;
+    padding-left: 1rem;
+    font-style: italic;
+}
+
+.markdown-content a {
+    color: #60a5fa;
+    text-decoration: underline;
+}
+
+.markdown-content a:hover {
+    color: #93c5fd;
+}

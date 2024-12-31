@@ -135,6 +135,11 @@
         }
 
         function checkHeartbeat() {
+            // Don't check heartbeats if we've received a successful completion
+            if (status === 'complete') {
+                return;
+            }
+
             const currentInterval = status === 'analyzing' ? 
                 ANALYSIS_HEARTBEAT_INTERVAL : HEARTBEAT_INTERVAL;
             const maxMissed = status === 'analyzing' ? 
@@ -185,8 +190,8 @@
                             analysisProgress = data.progress;
                         }
                     }
-                    if (data.page !== undefined) currentPage = data.page;
-                    if (data.total !== undefined) totalPages = data.total;
+                    if (data.current_page !== undefined) currentPage = data.current_page;
+                    if (data.total_pages !== undefined) totalPages = data.total_pages;
                     if (data.current_chunk !== undefined) currentChunk = data.current_chunk;
                     if (data.total_chunks !== undefined) totalChunks = data.total_chunks;
                     if (data.estimated_time !== undefined) estimatedTime = data.estimated_time;
@@ -283,7 +288,7 @@
                  status === "receiving" ? 0 : 1;
 </script>
 
-<div class="container mx-auto px-4 py-8">
+<div class="container mx-auto px-4 min-h-screen flex flex-col justify-center">
     {#if !status || status === ''}
         <div
             class="border border-white p-4 text-center w-96 mx-auto"
@@ -333,7 +338,7 @@
     {/if}
 
     {#if summary}
-        <div class="mt-8 font-mono text-white markdown-body">
+        <div class="mt-8 font-mono markdown-content">
             {@html marked(summary)}
         </div>
     {/if}
