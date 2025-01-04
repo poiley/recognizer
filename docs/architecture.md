@@ -21,10 +21,9 @@
 graph TD
     A[Frontend] -->|PDF Upload| B[WebSocket]
     B -->|Chunks| C[PDF Processor]
-    C -->|Images| D[Tesseract OCR]
-    D -->|Text| E[Text Chunker]
-    E -->|Chunks| F[AI Analysis]
-    F -->|Summary| B
+    C -->|Text| D[Text Chunker]
+    D -->|Chunks| E[AI Analysis]
+    E -->|Summary| B
     B -->|Progress/Status| A
 ```
 

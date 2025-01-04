@@ -1,20 +1,19 @@
-import pytesseract
-from PIL import Image
+import fitz  # PyMuPDF
 from app.core.logging import logger
 
-def process_image(image: Image) -> str:
+def process_pdf_page(page) -> str:
     """
-    Process a single image with OCR to extract text.
+    Process a single PDF page with PyMuPDF to extract text.
     
     Args:
-        image: PIL Image object
+        page: fitz.Page object
         
     Returns:
-        str: Extracted text from the image
+        str: Extracted text from the page
     """
     try:
-        text = pytesseract.image_to_string(image)
+        text = page.get_text()
         return text.strip()
     except Exception as e:
-        logger.error(f"Error processing image with OCR: {str(e)}")
+        logger.error(f"Error processing page with PyMuPDF: {str(e)}")
         return "" 
