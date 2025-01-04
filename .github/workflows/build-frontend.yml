@@ -25,14 +25,14 @@ jobs:
         id: version
         run: |
           cd frontend
-          VERSION=$(cat version)
+          VERSION=$(jq -r .version package.json)
           echo "VERSION=${VERSION}-$(date +'%Y%m%d')-$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
 
       - name: Build Frontend
         run: |
           cd frontend
           bun run build
-          docker build -t frontend:${{ steps.version.outputs.VERSION }} .
+          docker build -t frontend:${{ steps.version.outputs.VERSION }} . --build-arg VERSION=${{ steps.version.outputs.VERSION }}
           docker save frontend:${{ steps.version.outputs.VERSION }} | gzip > ../frontend.tar.gz
           echo ${{ steps.version.outputs.VERSION }} > ../version.txt
 

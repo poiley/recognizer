@@ -16,13 +16,13 @@ fi
 
 # Build frontend
 cd frontend || exit
-echo "Building frontend ${FE_VERSION}-snapshot..."
-docker build -t frontend:${FE_VERSION}-snapshot . --build-arg VERSION=${FE_VERSION}
+echo "Building frontend ${FE_VERSION}..."
+docker build -t frontend:${FE_VERSION} . --build-arg VERSION=${FE_VERSION}
 
 # Build backend
 cd ../backend || exit
-echo "Building backend ${BE_VERSION}-snapshot..."
-docker build -t backend:${BE_VERSION}-snapshot .
+echo "Building backend ${BE_VERSION}..."
+docker build -t backend:${BE_VERSION} .
 
 cd ..
 docker-compose up -d
