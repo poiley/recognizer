@@ -4,7 +4,7 @@ from pdf2image import convert_from_path
 
 from app.core.config import settings
 from app.core.logging import logger
-from app.services.ocr import process_pdf_page
+from app.services.text_extraction import process_pdf_page
 from app.services.ai import process_chunk
 from app.utils.text import split_into_chunks
 from app.utils.time import estimate_processing_time, estimate_remaining_time
