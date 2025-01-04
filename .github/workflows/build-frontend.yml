@@ -2,7 +2,7 @@ name: Frontend Build
 on:
   push:
     paths:
-      - "frontend/**"
+      - "frontend/package.json"
       - ".github/workflows/frontend.yml"
 
 jobs:
