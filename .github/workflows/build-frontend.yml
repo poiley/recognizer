@@ -10,6 +10,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+
+      - name: Install Dependencies
+        run: |
+          cd frontend
+          bun install
 
       - name: Get version
         id: version
@@ -21,6 +31,7 @@ jobs:
       - name: Build Frontend
         run: |
           cd frontend
+          bun run build
           docker build -t frontend:${{ steps.version.outputs.VERSION }} .
           docker save frontend:${{ steps.version.outputs.VERSION }} | gzip > ../frontend.tar.gz
           echo ${{ steps.version.outputs.VERSION }} > ../version.txt

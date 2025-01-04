@@ -1,8 +1,18 @@
 FROM python:3.11-slim
 WORKDIR /app
-RUN apt-get update && apt-get install -y tesseract-ocr poppler-utils
-COPY requirements.txt .
+
+# Update pip
 RUN pip install --upgrade pip
-RUN pip install --no-warn-script-location -r requirements.txt
+
+# Install uv
+RUN pip install uv
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y poppler-utils
+
+# Copy requirements and install with uv
+COPY requirements.txt .
+RUN uv pip install --system -r requirements.txt
+
 COPY . .
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--lifespan=on", "--log-level=info"]
