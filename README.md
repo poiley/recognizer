@@ -4,7 +4,7 @@ Analyze, summarize, and explain information in PDF textbooks and whitepapers usi
 
 ## Features
 - PDF text extraction with OCR
-- Real-time progress tracking
+- Real-time tracking of analysis progress
 - Chunked file upload
 - Automatic error recovery
 - Memory-efficient processing
@@ -22,9 +22,24 @@ Analyze, summarize, and explain information in PDF textbooks and whitepapers usi
 ## Requirements
 - Docker & Docker Compose
 - Node.js 20+
-- Python 3.11+
-- Tesseract OCR
+- Python 3.12+
+- Bun 1.0+
+- uv package manager
 - Poppler Utils
+
+## Configuration
+The application is configured through a central `.env` file. See [Local Setup](docs/setup/local.md#environment-variables) for details.
+
+Key configuration groups:
+- Ports and networking
+- Version management
+- AI and processing settings
+- Timeouts and health checks
+
+## Version Management
+- Frontend: Controlled by `package.json`
+- Backend: Controlled by `backend/version`
+- Images: Tagged with respective component versions
 
 ## Documentation
 - [API Documentation](docs/api/endpoints.md)
@@ -37,8 +52,8 @@ Analyze, summarize, and explain information in PDF textbooks and whitepapers usi
 ```bash
 # Frontend (default: http://localhost:5173)
 cd frontend
-npm install
-npm run dev
+bun install
+bun run dev
 
 # Backend (default: http://localhost:8000)
 cd backend
@@ -47,9 +62,6 @@ source venv/bin/activate
 pip install -r requirements.txt
 uvicorn main:app --reload
 ```
-
-## Environment Variables
-See [Local Setup](docs/setup/local.md#environment-setup) for configuration details.
 
 ## Contributing
 1. Fork the repository

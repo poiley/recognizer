@@ -12,11 +12,16 @@ async def health_check():
     health_status = {
         "status": "healthy",
         "memory": psutil.virtual_memory().percent,
-        "hostname": socket.gethostname()
+        "hostname": socket.gethostname(),
+        "config": {
+            "chunk_size": settings.CHUNK_SIZE,
+            "model": settings.OLLAMA_MODEL,
+            "token_encoding": settings.TOKEN_ENCODING
+        }
     }
     
     try:
-        async with httpx.AsyncClient(timeout=5.0) as client:
+        async with httpx.AsyncClient(timeout=settings.HEALTH_CHECK_TIMEOUT) as client:
             response = await client.get(f"{settings.OLLAMA_HOST}/api/tags")
             health_status["ollama"] = "connected" if response.status_code == 200 else "error"
     except Exception as e:

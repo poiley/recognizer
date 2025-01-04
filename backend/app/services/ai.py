@@ -1,12 +1,18 @@
-from functools import lru_cache
 from tenacity import retry, stop_after_attempt, wait_exponential
 import ollama
 from fastapi import WebSocket
 from typing import Optional
 
 from app.core.logging import logger
+from app.core.config import settings
 
-async def load_prompt(prompt_path: str = "prompts/default.txt") -> str:
+async def load_prompt(prompt_path: str = None) -> str:
+    """
+    Load prompt template from file or use default.
+    """
+    if prompt_path is None:
+        prompt_path = settings.PROMPT_FILE
+        
     try:
         with open(prompt_path, 'r') as file:
             return file.read().strip()
@@ -41,7 +47,7 @@ async def process_chunk(chunk: str, websocket: WebSocket, chunk_index: int, tota
 
         try:
             response = ollama.chat(
-                model='mistral',
+                model=settings.OLLAMA_MODEL,
                 messages=[{
                     'role': 'user',
                     'content': full_prompt

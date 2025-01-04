@@ -1,13 +1,12 @@
 import fitz
 from fastapi import WebSocket
-from pdf2image import convert_from_path
 
-from app.core.config import settings
 from app.core.logging import logger
 from app.services.text_extraction import process_pdf_page
 from app.services.ai import process_chunk
 from app.utils.text import split_into_chunks
 from app.utils.time import estimate_processing_time, estimate_remaining_time
+from app.core.config import settings
 
 async def process_pdf(pdf_path: str, websocket: WebSocket) -> str:
     """
@@ -43,7 +42,7 @@ async def process_pdf(pdf_path: str, websocket: WebSocket) -> str:
         # Process text chunks
         combined_text = ' '.join(all_text)
         logger.info(f"Complete OCR Text before chunking (length: {len(combined_text)} chars):\n{combined_text}")
-        chunks = split_into_chunks(combined_text)
+        chunks = split_into_chunks(combined_text, settings.CHUNK_SIZE)
         total_chunks = len(chunks)
         
         await websocket.send_json({

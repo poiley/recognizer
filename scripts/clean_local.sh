@@ -1,9 +1,12 @@
-
 #!/bin/bash
 
-# Get versions from version files
-FE_VERSION=$(cat frontend/version)
-BE_VERSION=$(cat backend/version)
+# Use exported versions or get them if not set
+if [ -z "$FE_VERSION" ]; then
+    export FE_VERSION=$(node -p "require('./frontend/package.json').version")
+fi
+if [ -z "$BE_VERSION" ]; then
+    export BE_VERSION=$(cat backend/version)
+fi
 
 docker-compose down
 
