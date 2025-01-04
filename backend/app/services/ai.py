@@ -6,7 +6,7 @@ from typing import Optional
 
 from app.core.logging import logger
 
-async def load_prompt(prompt_path: str = "prompts/default.txt") -> str:
+async def load_prompt(prompt_path: str = "prompts/metaprompt.txt") -> str:
     try:
         with open(prompt_path, 'r') as file:
             return file.read().strip()
@@ -24,21 +24,19 @@ Guidelines:
 @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=4, max=10))
 async def process_chunk(chunk: str, websocket: WebSocket, chunk_index: int, total_chunks: int, previous_summary: Optional[str] = None) -> str:
     try:
-        prompt_template = await load_prompt('default')
-        context = f"This is chunk {chunk_index + 1} of {total_chunks}."
+        prompt_template = await load_prompt()
         
-        # Pass more focused context about previous content
-        if previous_summary:
-            # Extract key points from previous summary to maintain flow
-            key_points = previous_summary.split('\n')[-5:]  # Take last few key points
-            points_text = '\n'.join(key_points)
-            context = f"{context}\n\nKey points from previous section:\n{points_text}\n\nContinue the document flow, focusing on new information while maintaining narrative coherence."
-        
-        full_prompt = f"{prompt_template}\n\n{context}\n\nText to analyze:\n{chunk}"
-        
-        logger.info(f"Processing chunk {chunk_index + 1}/{total_chunks} (length: {len(chunk)} chars):\n{chunk}")
-        logger.info("Chunk boundary marker ----")
+        # Prepare input section
+        inputs = f"""<Inputs>
+{chunk}
+{chunk_index == 0}
+{previous_summary if previous_summary else ''}
+</Inputs>"""
 
+        full_prompt = f"{prompt_template}\n\n{inputs}"
+        
+        logger.info(f"Processing chunk {chunk_index + 1}/{total_chunks} (length: {len(chunk)} chars)")
+        
         try:
             response = ollama.chat(
                 model='mistral',
@@ -49,11 +47,15 @@ async def process_chunk(chunk: str, websocket: WebSocket, chunk_index: int, tota
                 stream=False
             )
             result = response['message']['content']
-            logger.info(f"AI Output for chunk {chunk_index + 1}/{total_chunks} (length: {len(result)} chars):\n{result}")
+            
+            # Extract content between <summary> tags if present
+            if '<summary>' in result and '</summary>' in result:
+                result = result.split('<summary>')[1].split('</summary>')[0].strip()
+                
+            logger.info(f"AI Output for chunk {chunk_index + 1}/{total_chunks} (length: {len(result)} chars)")
             return result
 
         except Exception as e:
-            logger.error(f"Ollama processing failed: {str(e)}")
             await websocket.send_json({
                 'error': f'AI processing failed: {str(e)}'
             })
@@ -61,7 +63,4 @@ async def process_chunk(chunk: str, websocket: WebSocket, chunk_index: int, tota
 
     except Exception as e:
         logger.error(f"Chunk processing failed: {str(e)}")
-        await websocket.send_json({
-            'error': f'Chunk processing failed: {str(e)}'
-        })
         raise 

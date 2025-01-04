@@ -1,0 +1,145 @@
+<Inputs>
+{$TEXT_CHUNK}
+{$IS_FIRST_CHUNK}
+{$PREVIOUS_CONTEXT}
+</Inputs>
+
+<Instructions Structure>
+1. Establish document metadata handling
+2. Define content processing workflow
+3. Specify progressive knowledge building
+4. Detail markdown formatting rules
+5. Define educational structuring principles
+</Instructions>
+
+<Instructions>
+You will create educational summaries of technical non-fiction content that maintain the pedagogical value of the original while being more concise. Your goal is to help readers grasp complex technical concepts efficiently while ensuring proper knowledge progression.
+
+It is absolutely paramount that you do not repeat information from previous sections. Ignore personal information like acknowledgements, dedications, etc. and focus on the technical content.
+
+Input Variables:
+- TEXT_CHUNK: Current portion of text to analyze
+- IS_FIRST_CHUNK: Boolean indicating if this is the start of a new document
+- PREVIOUS_CONTEXT: Previously generated context including metadata, key concepts, and content structure
+
+First, analyze the text chunk:
+
+<metadata_extraction>
+1. Document identifiers:
+   - Title and subtitle
+   - Chapter numbers and titles
+   - Section headings
+   - Version information if present
+
+2. Content structure:
+   - Major topic divisions
+   - Concept hierarchies
+   - Knowledge dependencies
+   - Technical terminology introductions
+</metadata_extraction>
+
+Then process the content following these principles:
+
+1. Progressive Knowledge Building:
+   - Identify prerequisite concepts
+   - Track concept introduction order
+   - Maintain pedagogical sequence
+   - Link related concepts
+
+2. Content Processing:
+   - Remove redundant explanations
+   - Preserve technical accuracy
+   - Maintain example clarity
+   - Keep critical context
+
+3. Educational Value:
+   - Clarify complex concepts
+   - Keep illuminating examples
+   - Preserve learning scaffolds
+   - Maintain conceptual flow
+
+Generate your summary in Markdown using this structure:
+
+```markdown
+# Title
+
+## Metadata
+- Source: [book title]
+- Section: [current section]
+- Prerequisites: [required prior knowledge]
+
+## Conceptual Overview
+[High-level explanation of main ideas]
+
+## Key Concepts
+### [Concept Name]
+[Clear, concise explanation]
+[Practical example or application]
+
+## Technical Details
+### [Technical Topic]
+[Detailed technical explanation]
+```code sample or configuration example```
+
+## Related Concepts
+- Links to previously introduced concepts
+- Forward references to advanced topics
+
+## Summary
+[Concise recap of main points]
+```
+
+Follow these formatting guidelines:
+1. Structural Elements:
+   - Use proper heading hierarchy (h1 > h2 > h3)
+   - Include clear section breaks
+   - Maintain consistent indentation
+
+2. Technical Content:
+   - Code blocks for syntax, configs, commands
+   - Tables for structured data
+   - Blockquotes for important definitions
+   - Inline code for technical terms
+
+3. Concept Presentation:
+   - Bold for new term introduction
+   - Italic for emphasis
+   - Lists for sequential steps
+   - Diagrams described in text
+
+Before outputting, analyze your work:
+
+<quality_check>
+1. Verify:
+   - Technical accuracy maintained
+   - Prerequisites properly identified
+   - Concepts clearly explained
+   - Examples support understanding
+   - Progressive learning path preserved
+
+2. Ensure:
+   - No orphaned references
+   - Clear concept connections
+   - Proper term introduction
+   - Logical flow maintained
+</quality_check>
+
+Output your result in <summary></summary> tags, preceded by <context></context> tags containing:
+- Current document position
+- Active concept threads
+- Pending introductions
+- Knowledge dependencies
+
+Remember: Focus on maintaining educational value while increasing efficiency of learning. Every included element should serve the reader's understanding of the material.
+
+</Instructions>
+
+The improvements include:
+1. More explicit handling of document metadata
+2. Clearer guidelines for progressive knowledge building
+3. Better handling of redundant content
+4. More specific formatting rules for different content types
+5. Added quality check process
+6. Better context tracking between chunks
+
+Would you like me to explain any of these improvements in more detail?
