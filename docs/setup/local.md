@@ -6,12 +6,12 @@
 - Python 3.12+
 - uv package manager
 - Poppler Utils
-- Github CLI (optional, for artifact pulls)
+- Node.js (for version management)
 
 ## Quick Start
 ```bash
 # Clone repository
-git clone <repository-url>
+git clone ssh://git@github.com/poiley/recognizer.git
 
 # Build and run with Docker Compose
 ./scripts/build_local.sh
@@ -31,16 +31,38 @@ pip install -r requirements.txt
 uvicorn main:app --reload
 ```
 
-## Environment Setup
-```bash
-# Frontend (.env)
-VITE_BACKEND_URL=http://localhost:8000
+## Environment Variables
+The application uses a central `.env` file for configuration:
 
-# Backend (.env)
-MAX_MEMORY_PERCENT=80
-MAX_WORKERS=2
-CORS_ORIGINS=["http://localhost:5173"]
+```bash
+# Ports
+FRONTEND_PORT=5173
+BACKEND_PORT=8000
+OLLAMA_PORT=11434
+
+# Versions (automatically managed)
+FE_VERSION=1.0.1  # from package.json
+BE_VERSION=1.0.1  # from backend/version
+
+# AI/Processing
+OLLAMA_MODEL=mistral
+CHUNK_SIZE=3000
+TOKEN_ENCODING=cl100k_base
+PROMPT_FILE=prompts/default.txt
+OLLAMA_MEMORY=12G
+
+# Timeouts
+HEALTH_CHECK_TIMEOUT=5.0
+OLLAMA_TIMEOUT=30.0
 ```
+
+For local overrides, create a `.env.local` file (gitignored).
+
+## Version Management
+- Frontend version is controlled by `package.json`
+- Backend version is controlled by `backend/version` file
+- Docker images are tagged with respective versions
+- Version changes are propagated through environment variables
 
 ## Development Commands
 ```bash
@@ -51,16 +73,15 @@ bun run preview    # Preview production build
 
 # Backend
 uvicorn main:app --reload  # Development server (default port 8000)
+
+# Version Management
+npm version patch  # Update frontend version
 ```
 
 ## Docker Commands
 ```bash
 # Build images
-docker build -t frontend:latest frontend/
-docker build -t backend:latest backend/
-
-# Run with Docker Compose
-docker-compose up -d
+docker-compose up --build
 
 # View logs
 docker-compose logs -f
@@ -70,9 +91,9 @@ docker-compose down
 ```
 
 ## Common Issues
-- Memory pressure: Adjust MAX_MEMORY_PERCENT in backend environment
+- Memory pressure: Adjust OLLAMA_MEMORY in .env
 - PDF processing fails: Check Poppler installation
-- WebSocket connection fails: Verify CORS settings and VITE_BACKEND_URL
+- WebSocket connection fails: Verify CORS settings
 - Build fails: Check Bun and Python versions
 
 ## Cleanup

@@ -40,7 +40,7 @@ async def lifespan(app: FastAPI):
     try:
         logger.info("[Startup] Attempting Ollama connection...")
         async with httpx.AsyncClient(timeout=10.0) as client:
-            response = await client.get("http://ollama:11434/api/tags")
+            response = await client.get(f"{settings.OLLAMA_HOST}/api/tags")
             logger.info(f"[Startup] Response status: {response.status_code}")
             logger.info(f"[Startup] Response body: {response.text}")
             models = response.json().get('models', [])

@@ -4,8 +4,8 @@ Analyze, summarize, and explain information in PDF textbooks and whitepapers usi
 
 ## Features
 - PDF text extraction with PyMuPDF
-- Real-time analysis progress tracking
-- Chunked file upload to AI
+- Real-time tracking of analysis progress
+- Chunked file upload to Ollama
 - Automatic error recovery
 - Memory-efficient processing
 - Markdown formatted output
@@ -23,7 +23,23 @@ Analyze, summarize, and explain information in PDF textbooks and whitepapers usi
 - Docker & Docker Compose
 - Node.js 20+
 - Python 3.12+
+- Bun 1.0+
+- uv package manager
 - Poppler Utils
+
+## Configuration
+The application is configured through a central `.env` file. See [Local Setup](docs/setup/local.md#environment-variables) for details.
+
+Key configuration groups:
+- Ports and networking
+- Version management
+- AI and processing settings
+- Timeouts and health checks
+
+## Version Management
+- Frontend: Controlled by `package.json`
+- Backend: Controlled by `backend/version`
+- Images: Tagged with respective component versions
 
 ## Documentation
 - [API Documentation](docs/api/endpoints.md)
@@ -47,9 +63,6 @@ source venv/bin/activate
 pip install -r requirements.txt
 uvicorn main:app --reload
 ```
-
-## Environment Variables
-See [Local Setup](docs/setup/local.md#environment-setup) for configuration details.
 
 ## Contributing
 1. Fork the repository

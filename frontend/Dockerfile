@@ -1,6 +1,10 @@
 FROM oven/bun:1.0.35-slim
 WORKDIR /app
 
+# Version from build arg
+ARG VERSION
+LABEL version=$VERSION
+
 # Copy package files
 COPY package*.json .
 
@@ -14,7 +18,7 @@ COPY . .
 RUN bun run build
 
 # Expose the port
-EXPOSE 5173
+EXPOSE $FRONTEND_PORT
 
-# Start the server with host binding on port 5173
-CMD ["bun", "run", "preview", "--host", "0.0.0.0", "--port", "5173"]
+# Start the server with host binding
+CMD ["sh", "-c", "bun run preview --host 0.0.0.0 --port $FRONTEND_PORT"]
