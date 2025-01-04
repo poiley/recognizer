@@ -58,8 +58,8 @@ bun run dev
 # Backend (default: http://localhost:8000)
 cd backend
 pip install uv
-uv venv
-source venv/bin/activate
+uv .venv
+source .venv/bin/activate
 pip install -r requirements.txt
 uvicorn main:app --reload
 ```
