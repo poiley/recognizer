@@ -68,12 +68,8 @@
         switch (status) {
             case 'receiving':
                 return `Uploading PDF (${Math.round(progress * 100)}%)`;
-            case 'converting':
-                return 'Converting PDF to images...';
-            case 'converted':
-                return `Ready to process ${totalPages} pages`;
             case 'processing':
-                return `OCR processing page ${currentPage} of ${totalPages}`;
+                return `Processing page ${currentPage} of ${totalPages}`;
             case 'analyzing':
                 if (isInFinalAnalysis) {
                     return 'Generating final summary';
@@ -107,7 +103,7 @@
                                 Processing Document
                             {/if}
                         {:else if status === 'processing'}
-                            OCR Analysis
+                            Text Extraction
                         {/if}
                     </div>
                     <div class="text-white">

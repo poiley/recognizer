@@ -75,8 +75,7 @@
 
 ## Status Types
 - `receiving`: File upload in progress
-- `converting`: Converting PDF to images
-- `processing`: OCR processing
+- `processing`: PDF text extraction
 - `analyzing`: AI analysis in progress
 - `complete`: Processing complete
 

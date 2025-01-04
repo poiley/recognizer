@@ -183,7 +183,15 @@
 
                 // Handle status updates
                 if (data.status) {
+                    const previousStatus = status;
                     status = data.status;
+                    
+                    // Reset progress when transitioning from processing to analyzing
+                    if (previousStatus === 'processing' && status === 'analyzing') {
+                        progress = 0;
+                        analysisProgress = 0;
+                    }
+                    
                     if (data.progress !== undefined) {
                         progress = data.progress;
                         if (status === 'analyzing') {
@@ -286,6 +294,27 @@
     $: progress = status === "analyzing" ? analysisProgress : 
                  status === "processing" ? currentPage / totalPages : 
                  status === "receiving" ? 0 : 1;
+
+    function getStatusMessage(status, progress, currentPage, totalPages, currentChunk, totalChunks, estimatedTime, isInFinalAnalysis) {
+        switch (status) {
+            case 'receiving':
+                return `Uploading PDF (${Math.round(progress * 100)}%)`;
+            case 'processing':
+                return `Processing page ${currentPage} of ${totalPages}`;
+            case 'analyzing':
+                if (isInFinalAnalysis) {
+                    return 'Generating final summary';
+                }
+                if (totalChunks) {
+                    return `AI Analysis: Processing chunk ${currentChunk} of ${totalChunks} ${estimatedTime ? `(est. ${estimatedTime})` : ''}`;
+                }
+                return 'Starting AI processing';
+            case 'complete':
+                return 'AI Analysis complete';
+            default:
+                return 'Ready to process PDF';
+        }
+    }
 </script>
 
 <div class="container mx-auto px-4 min-h-screen flex flex-col justify-center">
