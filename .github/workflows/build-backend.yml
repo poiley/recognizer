@@ -22,6 +22,8 @@ jobs:
       - name: Install Dependencies
         run: |
           cd backend
+          uv venv
+          source .venv/bin/activate
           uv pip install -r requirements.txt
 
       - name: Get version
