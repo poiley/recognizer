@@ -3,7 +3,7 @@
 ## Prerequisites
 - Docker and Docker Compose
 - Bun 1.0+
-- Python 3.13+
+- Python 3.12+
 - uv package manager
 - Poppler Utils
 - Github CLI (optional, for artifact pulls)
