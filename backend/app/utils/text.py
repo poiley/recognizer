@@ -1,31 +1,34 @@
 from typing import List
 import tiktoken
-from app.core.config import settings
 from app.core.logging import logger
+from app.core.config import settings
 
 def count_tokens(text: str) -> int:
     """
     Count the number of tokens in a text string using tiktoken.
     """
     try:
-        encoding = tiktoken.get_encoding("cl100k_base")  # GPT-4 encoding
+        encoding = tiktoken.get_encoding(settings.TOKEN_ENCODING)
         return len(encoding.encode(text))
     except Exception as e:
         logger.warning(f"Token counting failed, falling back to approximate: {str(e)}")
         return len(text.split()) # Fallback to word count
 
-def split_into_chunks(text: str, chunk_size: int = 2000) -> List[str]:
+def split_into_chunks(text: str, chunk_size: int = None) -> List[str]:
     """
     Split text into chunks while trying to preserve paragraph structure.
     
     Args:
         text: Text to split
-        chunk_size: Target size for each chunk in tokens (default 2000)
+        chunk_size: Target size for each chunk in tokens. If None, uses settings.CHUNK_SIZE
         
     Returns:
         List of text chunks with approximately chunk_size tokens each,
         preserving paragraph boundaries where possible
     """
+    if chunk_size is None:
+        chunk_size = settings.CHUNK_SIZE
+
     # Split into paragraphs first
     paragraphs = text.split('\n\n')
     chunks = []

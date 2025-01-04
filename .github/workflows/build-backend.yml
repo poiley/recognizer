@@ -2,7 +2,7 @@ name: Backend Build
 on:
   push:
     paths:
-      - "backend/**"
+      - "backend/version"
       - ".github/workflows/backend.yml"
 
 jobs:

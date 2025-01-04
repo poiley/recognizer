@@ -1,35 +1,52 @@
 services:
   frontend:
-    build: ./frontend
+    build:
+      context: ./frontend
+      args:
+        VERSION: ${FE_VERSION}
+    image: frontend:${FE_VERSION}
     ports:
-      - "5173:5173"
+      - "${FRONTEND_PORT}:${FRONTEND_PORT}"
     networks:
       - app_network
 
   backend:
-    build: ./backend
+    build: 
+      context: ./backend
+      args:
+        VERSION: ${BE_VERSION}
+    image: backend:${BE_VERSION}
     ports:
-      - "8000:8000"
+      - "${BACKEND_PORT}:${BACKEND_PORT}"
     networks:
       - app_network
     environment:
-      - OLLAMA_HOST=http://ollama:11434
-      - PYTHONUNBUFFERED=1
+      CORS_ORIGINS: '["http://localhost:${FRONTEND_PORT}"]'
+      OLLAMA_HOST: "http://ollama:${OLLAMA_PORT}"
+      OLLAMA_MODEL: ${OLLAMA_MODEL}
+      CHUNK_SIZE: ${CHUNK_SIZE}
+      TOKEN_ENCODING: ${TOKEN_ENCODING}
+      PROMPT_FILE: ${PROMPT_FILE}
+      HEALTH_CHECK_TIMEOUT: ${HEALTH_CHECK_TIMEOUT}
+      OLLAMA_TIMEOUT: ${OLLAMA_TIMEOUT}
+      PYTHONUNBUFFERED: 1
     depends_on:
       - ollama
 
   ollama:
     build: ./ollama
     ports:
-      - "11434:11434"
+      - "${OLLAMA_PORT}:${OLLAMA_PORT}"
     networks:
       - app_network
     volumes:
       - ollama_data:/root/.ollama
+    environment:
+      OLLAMA_MODEL: ${OLLAMA_MODEL}
     deploy:
       resources:
         limits:
-          memory: 8G
+          memory: ${OLLAMA_MEMORY}
 
 networks:
   app_network:
