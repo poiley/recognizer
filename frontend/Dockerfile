@@ -1,22 +1,20 @@
-FROM node:20-alpine
+FROM oven/bun:1.0.35-slim
 WORKDIR /app
 
-# Install dependencies first (better caching)
-COPY package*.json ./
-RUN npm install -g npm@latest
-RUN npm install
+# Copy package files
+COPY package*.json .
 
-# Copy source and build
+# Install dependencies with Bun
+RUN bun install
+
+# Copy source code
 COPY . .
-RUN npm run build
 
-# Clean dev environment
-RUN rm -rf node_modules
-RUN npm install
+# Build the application
+RUN bun run build
 
-# Runtime config
-ENV HOST=0.0.0.0
+# Expose the port
 EXPOSE 5173
 
-# Start dev server
-CMD ["npm", "run", "dev", "--", "--host"]
+# Start the server with host binding on port 5173
+CMD ["bun", "run", "preview", "--host", "0.0.0.0", "--port", "5173"]

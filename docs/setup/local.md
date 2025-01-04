@@ -2,9 +2,9 @@
 
 ## Prerequisites
 - Docker and Docker Compose
-- Node.js 20+
-- Python 3.11+
-- Tesseract OCR
+- Bun 1.0+
+- Python 3.13+
+- uv package manager
 - Poppler Utils
 - Github CLI (optional, for artifact pulls)
 
@@ -21,8 +21,8 @@ git clone <repository-url>
 
 # For manual builds:
 cd frontend 
-npm install
-npm run dev
+bun install
+bun run dev
 
 cd ../backend 
 python -m venv venv 
@@ -45,9 +45,9 @@ CORS_ORIGINS=["http://localhost:5173"]
 ## Development Commands
 ```bash
 # Frontend
-npm run dev         # Development server (default port 5173)
-npm run build      # Production build
-npm run preview    # Preview production build
+bun run dev         # Development server (default port 5173)
+bun run build      # Production build
+bun run preview    # Preview production build
 
 # Backend
 uvicorn main:app --reload  # Development server (default port 8000)
@@ -71,15 +71,15 @@ docker-compose down
 
 ## Common Issues
 - Memory pressure: Adjust MAX_MEMORY_PERCENT in backend environment
-- PDF processing fails: Check Tesseract and Poppler installation
+- PDF processing fails: Check Poppler installation
 - WebSocket connection fails: Verify CORS settings and VITE_BACKEND_URL
-- Build fails: Check Node.js and Python versions
+- Build fails: Check Bun and Python versions
 
 ## Cleanup
 ```bash
 # Remove containers and images
 ./scripts/clean_local.sh
 
-# Remove node_modules and virtual environments
+# Remove dependencies and virtual environments
 rm -rf frontend/node_modules backend/venv
 ```
