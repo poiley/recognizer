@@ -1,11 +1,13 @@
 import fitz
 from fastapi import WebSocket
+from typing import Dict, Any
+import time
 
 from app.core.logging import logger
 from app.services.text_extraction import process_pdf_page
 from app.services.ai import process_chunk
 from app.utils.text import split_into_chunks
-from app.utils.time import estimate_processing_time, estimate_remaining_time
+from app.utils.time import estimator
 from app.core.config import settings
 
 async def process_pdf(pdf_path: str, websocket: WebSocket) -> str:
@@ -51,37 +53,39 @@ async def process_pdf(pdf_path: str, websocket: WebSocket) -> str:
             'total_chunks': total_chunks,
             'current_chunk': 0,
             'progress': 0,
-            'estimated_time': estimate_processing_time(total_chunks)
+            'estimated_time': estimator.estimate_total_time(total_chunks)
         })
 
         # Process chunks with AI
         summaries = []
-        running_summary = None
+        current_context: Dict[str, Any] = None
         for i, chunk in enumerate(chunks):
-            summary = await process_chunk(
+            result = await process_chunk(
                 chunk, 
                 websocket, 
                 chunk_index=i,
                 total_chunks=total_chunks,
-                previous_summary=running_summary
+                previous_context=current_context
             )
-            summaries.append(summary)
-            # Keep only the most recent summary for context
-            running_summary = summary
+            summaries.append(result['summary'])
+            current_context = result['context']
             
             await websocket.send_json({
                 'status': 'analyzing',
                 'current_chunk': i + 1,
                 'total_chunks': total_chunks,
                 'progress': (i + 1) / total_chunks,
-                'estimated_remaining': estimate_remaining_time(i + 1, total_chunks)
+                'estimated_remaining': estimator.estimate_remaining_time(i + 1, total_chunks)
             })
 
         # Combine summaries with proper section numbering and formatting
         sections = []
         for i, summary in enumerate(summaries, 1):
-            section_header = f"## Section {i}"
-            sections.append(f"{section_header}\n\n{summary}")
+            if summary.startswith('#'):  # If summary already has a heading
+                sections.append(summary)
+            else:  # Add section number if no heading
+                section_header = f"## Section {i}"
+                sections.append(f"{section_header}\n\n{summary}")
         
         final_summary = "# Document Summary\n\n" + "\n\n".join(sections)
         logger.info(f"Final Combined Summary:\n{final_summary}")

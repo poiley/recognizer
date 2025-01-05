@@ -3,9 +3,9 @@
 Analyze, summarize, and explain information in PDF textbooks and whitepapers using OCR and AI analysis. Upload PDFs to get markdown summaries and analysis with real-time progress tracking.
 
 ## Features
-- PDF text extraction with OCR
+- PDF text extraction with PyMuPDF
 - Real-time tracking of analysis progress
-- Chunked file upload
+- Chunked file upload to Ollama
 - Automatic error recovery
 - Memory-efficient processing
 - Markdown formatted output
@@ -57,8 +57,9 @@ bun run dev
 
 # Backend (default: http://localhost:8000)
 cd backend
-python -m venv venv
-source venv/bin/activate
+pip install uv
+uv .venv
+source .venv/bin/activate
 pip install -r requirements.txt
 uvicorn main:app --reload
 ```

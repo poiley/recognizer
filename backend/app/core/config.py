@@ -11,6 +11,7 @@ class Settings(BaseSettings):
     PROMPT_FILE: str = os.environ.get("PROMPT_FILE", "prompts/default.txt")
     HEALTH_CHECK_TIMEOUT: float = float(os.environ.get("HEALTH_CHECK_TIMEOUT", "5.0"))
     OLLAMA_TIMEOUT: float = float(os.environ.get("OLLAMA_TIMEOUT", "30.0"))
+    DEFAULT_CHUNK_TIME: float = float(os.environ.get("DEFAULT_CHUNK_TIME", "30.0"))
 
     class Config:
         env_file = ".env"

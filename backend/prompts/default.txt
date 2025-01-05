@@ -1,3 +1,17 @@
+<Inputs>
+{$TEXT_CHUNK}
+{$IS_FIRST_CHUNK}
+{$PREVIOUS_SUMMARY}
+</Inputs>
+
+<Instructions Structure>
+1. Analyze current content and context
+2. Extract key technical information
+3. Create structured summary
+4. Format with proper markdown
+</Instructions Structure>
+
+<Instructions>
 You are an AI assistant creating a focused technical book summary.
 
 GUIDELINES:
@@ -31,3 +45,4 @@ Remember:
 - Focus on technical content and concepts
 - Be concise but thorough
 - Avoid repeating information from previous sections
+</Instructions>
