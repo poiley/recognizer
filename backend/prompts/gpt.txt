@@ -1,7 +1,7 @@
 <Inputs>
-{$TEXT_CHUNK}
-{$IS_FIRST_CHUNK}
-{$PREVIOUS_CONTEXT}
+{$TEXT_CHUNK}: The current section of text for analysis.
+{$IS_FIRST_CHUNK}: Boolean indicating if this is the start of a new document.
+{$PREVIOUS_CONTEXT}: Context from prior chunks, including key concepts, summaries, and dependencies.
 </Inputs>
 
 <Instructions Structure>
@@ -122,6 +122,12 @@ Before outputting, analyze your work:
    - Clear concept connections
    - Proper term introduction
    - Logical flow maintained
+
+3. Quality Check:
+   - After generating the summary:
+     - Ensure all concepts are logically linked.
+     - Avoid redundancy with `$PREVIOUS_CONTEXT`.
+     - Verify technical clarity and Markdown formatting consistency.
 </quality_check>
 
 Output your result in <summary></summary> tags, preceded by <context></context> tags containing:
@@ -133,13 +139,3 @@ Output your result in <summary></summary> tags, preceded by <context></context> 
 Remember: Focus on maintaining educational value while increasing efficiency of learning. Every included element should serve the reader's understanding of the material.
 
 </Instructions>
-
-The improvements include:
-1. More explicit handling of document metadata
-2. Clearer guidelines for progressive knowledge building
-3. Better handling of redundant content
-4. More specific formatting rules for different content types
-5. Added quality check process
-6. Better context tracking between chunks
-
-Would you like me to explain any of these improvements in more detail?

@@ -1,0 +1,286 @@
+<Inputs>
+{$TEXT_CHUNK}: str  # Current text section for analysis
+{$IS_FIRST_CHUNK}: bool  # Start of new document flag
+{$PREVIOUS_CONTEXT}: dict {
+    "metadata": {
+        "partial_titles": [str],  # Incomplete section/chapter titles
+        "current_depth": int,     # Current heading depth
+        "pending_sections": [     # Sections waiting for completion
+            {
+                "text": str,      # Partial section text
+                "depth": int,     # Heading depth
+                "status": "incomplete" | "complete"
+            }
+        ]
+    },
+    "content": {
+        "active_concepts": [str], # Currently discussed technical concepts
+        "knowledge_chain": [      # Prerequisite relationships
+            {
+                "concept": str,
+                "requires": [str]
+            }
+        ]
+    }
+}
+</Inputs>
+<Instructions Structure>
+1. Process document metadata
+2. Extract and track concepts
+3. Generate educational summary
+4. Perform quality validation
+5. Format output in Markdown
+</Instructions Structure>
+<Instructions>
+Your task: Create technical summaries that teach effectively while being concise.
+
+1. Process Text Structure
+DO:
+- Join split headings from chunk boundaries
+  Example: If previous chunk ends with "3.1 Advanced" and current starts with "Neural Networks", combine as "3.1 Advanced Neural Networks"
+- Track section depth using #, ##, ### in Markdown
+- Note incomplete sections in pending_sections list
+
+DON'T:
+- Create new section numbers
+- Modify existing heading hierarchy
+- Lose partial headings at chunk boundaries
+
+2. Handle Technical Concepts
+DO:
+- Track concept dependencies explicitly
+  Example: If explaining backpropagation, list "gradients", "chain rule" as prerequisites
+- Define new terms when first introduced
+  Example: "Gradient descent: An optimization algorithm that..."
+- Link related concepts using inline references
+
+DON'T:
+- Redefine terms from previous chunks
+- Break prerequisite chains
+- Skip concept definitions
+
+3. Generate Summary Content
+DO:
+- Use concrete examples for abstract concepts
+  Example: Explain CNNs using image processing examples
+- Keep critical implementation details
+  Example: Include key parameters in code examples
+- Link to previous concepts using exact terms
+
+DON'T:
+- Include personal anecdotes
+- Repeat examples from previous chunks
+- Use ambiguous references
+
+4. Handle Edge Cases
+
+Boundary Content:
+DO:
+- Tables: Store partial tables in pending_sections until complete
+  Example: If table header is in previous chunk, reference it in current chunk
+- Code: Buffer incomplete functions until full definition available
+  Example: Store partial function in pending_sections.code_blocks
+- Equations: Track equation numbers and parts across chunks
+  Example: Tag equation fragments with shared ID
+- Lists: Maintain list context across chunk boundaries
+  Example: Continue numbering from previous chunk
+
+DON'T:
+- Start new table header if previous table incomplete
+- Generate partial code blocks
+- Fragment equations mid-expression
+- Reset list numbering arbitrarily
+
+References:
+DO:
+- Track unresolved forward references in pending_concepts
+- Maintain citation context across chunks
+- Cache figure/table references until content appears
+- Link cross-references to specific chunk IDs
+
+DON'T:
+- Introduce citations without context
+- Leave unresolved references
+- Drop figure/table numbers
+
+Formatting:
+DO:
+- Preserve nested list depth across chunks
+- Maintain consistent code indentation
+- Convert PDF-specific formatting to Markdown
+- Track open/close states of nested structures
+
+DON'T:
+- Break nested lists mid-hierarchy
+- Mix formatting standards
+- Lose code block language specifications
+
+5. Content Organization Rules
+
+Metadata Handling:
+DO:
+- Store book metadata (titles, figures, tables) in separate metadata registry
+- Reference figures/tables only when discussing their content
+- Group chapter summaries into coherent units
+
+DON'T:
+- Mix metadata listings with content summaries
+- List figures/tables without context
+- Duplicate structural information across chunks
+
+Content Flow:
+DO:
+- Use transition markers between chunks:
+  {
+    "previous_topic": "last major concept from previous chunk",
+    "current_topic": "main concept in this chunk",
+    "continuation_type": "expansion|new_topic|example"
+  }
+- Track narrative threads across chunks:
+  {
+    "thread_id": "unique_identifier",
+    "status": "ongoing|concluded",
+    "key_points": ["point1", "point2"],
+    "dependencies": ["thread_id1", "thread_id2"]
+  }
+
+DON'T:
+- Start new sections with generic transitions
+- Repeat context unnecessarily
+- Break narrative flow between chunks
+
+Example Resolution:
+DO:
+- Tag examples with unique IDs:
+  {
+    "example_id": "netflix_aws_outage",
+    "first_mention": chunk_id,
+    "components": ["availability", "resilience"],
+    "status": "complete|partial"
+  }
+- Track example components across chunks
+- Ensure complete example coverage
+
+DON'T:
+- Fragment examples across chunks without tracking
+- Repeat example setup in multiple chunks
+- Leave examples incomplete
+
+6. Enhanced Quality Validation
+
+Before Generating Output:
+1. Narrative Consistency Check:
+   - Scan previous chunks for related content
+   - Identify potential duplications
+   - Verify example completeness
+   - Check thread continuity
+
+2. Reference Validation:
+   - Verify all figures/tables are contextually introduced
+   - Confirm cross-references resolve to available content
+   - Check citation completeness
+   - Validate external link context
+
+3. Content Deduplication:
+   - Compare current content against previous chunks
+   - Flag potential repetition of:
+     - Examples
+     - Definitions
+     - Technical explanations
+   - Resolve overlapping content
+
+4. Structure Verification:
+   - Validate heading hierarchy
+   - Check list consistency
+   - Verify section transitions
+   - Confirm metadata placement
+
+5. Knowledge Flow Analysis:
+   - Verify concept prerequisites
+   - Check example dependencies
+   - Validate learning progression
+   - Confirm narrative thread completion
+
+If Validation Fails:
+1. Log specific validation failure
+2. Attempt auto-correction if possible
+3. Flag content for human review if needed
+4. Provide specific error context in output
+
+7. Format Consistency and Self-Review
+
+Before finalizing output:
+1. Format Verification:
+   - Ensure all headings follow consistent hierarchy
+   - Verify concept formatting patterns:
+     * New terms: `**term**` on first use
+     * Technical references: `inline code`
+     * Section headers: proper markdown levels
+   - Check list formatting consistency
+   - Validate code block language tags
+
+2. Content Self-Review:
+   - Compare concept explanations across chunks
+   - Verify technical accuracy of summaries
+   - Check for logical flow between sections
+   - Ensure prerequisites are properly linked
+
+3. Summary Enhancement:
+   - Review initial draft for clarity
+   - Strengthen concept connections
+   - Add missing context where needed
+   - Remove redundant explanations
+
+4. Final Quality Gates:
+   - Concept consistency check
+   - Format compliance verification
+   - Technical accuracy validation
+   - Educational value assessment
+
+If any check fails:
+1. Log the specific isYsue
+2. Apply correction rules
+3. Re-verify after changes
+4. Document changes in context
+
+Required Output Format:
+
+```markdown
+# [Complete Section Title]
+
+## Overview
+[One concise paragraph explaining the main topic and its significance]
+
+## Key Concepts
+[For each new concept:]
+### **[Concept Name]**
+- **Definition**: [Clear, concise definition]
+- **Example**: [Concrete, practical example]
+- **Prerequisites**: `[concept1]`, `[concept2]`
+
+## Technical Implementation
+- Code blocks must be complete and runnable
+- Include typical parameter values
+- Note common pitfalls
+
+Example:
+```python
+# CNN layer implementation
+conv_layer = nn.Conv2d(
+    in_channels=3,    # RGB input
+    out_channels=16,  # Number of filters
+    kernel_size=3,    # 3x3 kernel
+    padding=1         # Preserve spatial dimensions
+)
+```
+
+## Related Concepts
+Only list concepts that are:
+- Directly prerequisite to this section
+- Immediately built upon by this section
+Example: For CNNs, list "neural networks", "backpropagation", link to "pooling layers"
+
+Generate output in <result> tags containing:
+1. <context> Updated metadata and concept tracking
+2. <summary> Formatted technical content summary</result>
+</Instructions>

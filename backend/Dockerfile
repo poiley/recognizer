@@ -1,6 +1,8 @@
 FROM python:3.12-slim
 WORKDIR /app
 
+ARG VERSION
+
 LABEL version=$VERSION
 
 # Update pip
@@ -17,4 +19,4 @@ COPY requirements.txt .
 RUN uv pip install --system -r requirements.txt
 
 COPY . .
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "$BACKEND_PORT", "--lifespan=on", "--log-level=info"]
+CMD uvicorn main:app --host 0.0.0.0 --port $BACKEND_PORT --lifespan=on --log-level=info

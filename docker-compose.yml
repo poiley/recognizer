@@ -9,6 +9,9 @@ services:
       - "${FRONTEND_PORT}:${FRONTEND_PORT}"
     networks:
       - app_network
+    environment:
+      VERSION: ${FE_VERSION}
+      FRONTEND_PORT: ${FRONTEND_PORT}
 
   backend:
     build: 
@@ -20,7 +23,10 @@ services:
       - "${BACKEND_PORT}:${BACKEND_PORT}"
     networks:
       - app_network
+    depends_on:
+      - ollama
     environment:
+      BACKEND_PORT: ${BACKEND_PORT}
       CORS_ORIGINS: '["http://localhost:${FRONTEND_PORT}"]'
       OLLAMA_HOST: "http://ollama:${OLLAMA_PORT}"
       OLLAMA_MODEL: ${OLLAMA_MODEL}
@@ -29,9 +35,8 @@ services:
       PROMPT_FILE: ${PROMPT_FILE}
       HEALTH_CHECK_TIMEOUT: ${HEALTH_CHECK_TIMEOUT}
       OLLAMA_TIMEOUT: ${OLLAMA_TIMEOUT}
+      DEFAULT_CHUNK_TIME: ${DEFAULT_CHUNK_TIME}
       PYTHONUNBUFFERED: 1
-    depends_on:
-      - ollama
 
   ollama:
     build: ./ollama
